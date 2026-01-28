@@ -1,0 +1,30 @@
+schema_version: v1
+id: "publish_post"
+name: "Publish Post"
+version: "1.0.0"
+description: "Tap post and confirm publish."
+app:
+  name: "TikTok"
+risk: high
+preconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Post", "发布", "Caption", "Description", "文案"]
+steps:
+  - id: "tap_post"
+    action: Tap
+    confirm: "Publish content to external platform"
+    target:
+      type: selector
+      selector:
+        text: "Post"
+        match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 1500
+      on_codes: ["ACTION_FAILED", "POSTCONDITION_FAILED"]
+    assert:
+      condition:
+        text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]
+      timeout_ms: 15000
+      poll_interval_ms: 1000

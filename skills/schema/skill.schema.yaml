@@ -238,6 +238,10 @@ definitions:
         type: string
       message:
         type: string
+      skill_id:
+        type: string
+      inputs:
+        type: object
       wait:
         $ref: "#/definitions/wait"
   step:

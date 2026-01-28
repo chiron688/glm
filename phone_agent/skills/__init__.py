@@ -2,6 +2,11 @@
 
 from phone_agent.skills.errors import SkillError, SkillErrorCode
 from phone_agent.skills.ocr import OcrProvider, TesseractOcrProvider
+from phone_agent.skills.observation import (
+    ObservationProvider,
+    PlaybackObservationProvider,
+    RecordingObservationProvider,
+)
 from phone_agent.skills.registry import SkillRegistry
 from phone_agent.skills.router import SkillRouter, SkillRouterConfig
 from phone_agent.skills.runner import SkillRunner, SkillRunnerConfig
@@ -21,4 +26,7 @@ __all__ = [
     "SkillRunResult",
     "OcrProvider",
     "TesseractOcrProvider",
+    "ObservationProvider",
+    "RecordingObservationProvider",
+    "PlaybackObservationProvider",
 ]

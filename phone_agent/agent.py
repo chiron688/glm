@@ -1,6 +1,7 @@
 """用于编排手机自动化的主 PhoneAgent 类。"""
 
 import json
+import time
 import traceback
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -12,12 +13,16 @@ from phone_agent.device_factory import get_device_factory
 from phone_agent.model import ModelClient, ModelConfig
 from phone_agent.model.client import MessageBuilder
 from phone_agent.skills import (
+    SkillError,
+    SkillErrorCode,
     SkillRegistry,
+    SkillRunResult,
     SkillRunner,
     SkillRunnerConfig,
     SkillRouter,
     SkillRouterConfig,
 )
+from phone_agent.skills.reporting import SkillRunReport
 
 
 @dataclass
@@ -35,10 +40,15 @@ class AgentConfig:
     skill_common_handlers_path: str | None = None
     skill_record_dir: str | None = None
     skill_playback_dir: str | None = None
+    skill_whitelist: list[str] | None = None
+    skill_risk_gate_enabled: bool = False
+    skill_risk_keywords: list[str] | None = None
 
     def __post_init__(self):
         if self.system_prompt is None:
             self.system_prompt = get_system_prompt(self.lang)
+        if self.skill_risk_keywords is None:
+            self.skill_risk_keywords = ["发布", "上传", "post", "upload", "publish"]
 
 
 @dataclass
@@ -115,7 +125,13 @@ class PhoneAgent:
 
         self.skill_router = skill_router
         if self.skill_router is None and self.skill_registry is not None:
-            self.skill_router = SkillRouter(self.skill_registry, SkillRouterConfig())
+            router_config = SkillRouterConfig(
+                enforce_skill_whitelist=bool(self.agent_config.skill_whitelist),
+                skill_whitelist=self.agent_config.skill_whitelist or [],
+                enforce_on_risk=self.agent_config.skill_risk_gate_enabled,
+                risk_keywords=self.agent_config.skill_risk_keywords or [],
+            )
+            self.skill_router = SkillRouter(self.skill_registry, router_config)
 
         self._context: list[dict[str, Any]] = []
         self._step_count = 0
@@ -188,11 +204,34 @@ class PhoneAgent:
         except Exception:
             observation = None
         decision = self.skill_router.select(task, observation)
-        if decision is None:
+        if decision.action == "block":
+            now = 0.0
+            try:
+                now = time.time()
+            except Exception:
+                now = 0.0
+            report = SkillRunReport(
+                skill_id="__blocked__",
+                started_at=now,
+                ended_at=now,
+                inputs={"reason": decision.reason},
+            )
+            error = SkillError(
+                code=SkillErrorCode.ABORTED,
+                message="Blocked by risk gate",
+                stage="routing",
+            )
+            return SkillRunResult(
+                success=True,
+                message=f"Blocked by risk gate: {decision.reason}",
+                error=error,
+                report=report,
+            )
+        if decision.action == "none":
             return None
         if self.agent_config.verbose:
-            print(f"🧭 Skill routing to '{decision.skill_id}' ({decision.reason})")
-        return self.skill_runner.run(decision.skill_id, decision.inputs)
+            print(f"🧭 Skill routing to '{decision.directive.skill_id}' ({decision.reason})")
+        return self.skill_runner.run(decision.directive.skill_id, decision.directive.inputs)
 
     def _execute_step(
         self, user_prompt: str | None = None, is_first: bool = False

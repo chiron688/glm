@@ -23,18 +23,8 @@ error_handlers:
     when:
       text_any_contains: ["Allow", "While using the app", "允许", "仅在使用中允许", "使用应用时"]
     actions:
-      - action: Tap
-        target:
-          type: selector
-          selector:
-            text: "Allow"
-            match: contains
-      - action: Tap
-        target:
-          type: selector
-          selector:
-            text: "允许"
-            match: contains
+      - action: RunSkill
+        skill_id: "permission_allow_popup"
     resolution: continue
 
   - name: "network_retry"
@@ -67,8 +57,18 @@ error_handlers:
     when:
       text_any_contains: ["Log in", "Sign in", "登录", "验证", "验证码"]
     actions:
-      - action: Take_over
-        message: "Login required"
+      - action: RunSkill
+        skill_id: "login_flow"
+    resolution: escalate
+
+  - name: "verification_required"
+    trigger: on_error
+    codes: ["SCREEN_MISMATCH", "POSTCONDITION_FAILED"]
+    when:
+      text_any_contains: ["验证码", "Verification", "Captcha", "Security check"]
+    actions:
+      - action: RunSkill
+        skill_id: "verification_flow"
     resolution: escalate
 
   - name: "upload_failed_retry"

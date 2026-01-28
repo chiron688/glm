@@ -1,0 +1,22 @@
+schema_version: v1
+id: "publish_verify_post"
+name: "Publish Verify Post"
+version: "1.0.0"
+description: "Verify publish success state."
+app:
+  name: "TikTok"
+risk: high
+preconditions:
+  mode: best_effort
+  condition:
+    any:
+      - text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]
+      - text_any_contains: ["Your video", "作品", "主页"]
+steps:
+  - id: "wait_success"
+    action: Wait
+    duration_ms: 1000
+postconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]

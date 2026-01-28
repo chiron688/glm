@@ -1,0 +1,35 @@
+schema_version: v1
+id: "login_flow"
+name: "Login Flow"
+version: "1.0.0"
+description: "Generic login flow with user takeover."
+risk: medium
+preconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Log in", "Sign in", "登录", "手机号", "Password", "验证码"]
+steps:
+  - id: "tap_login"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Log in"
+        match: contains
+    optional: true
+  - id: "tap_login_cn"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "登录"
+        match: contains
+    optional: true
+  - id: "take_over"
+    action: Take_over
+    message: "Please complete login (account/password or verification)."
+postconditions:
+  mode: best_effort
+  condition:
+    not:
+      text_any_contains: ["Log in", "Sign in", "登录"]

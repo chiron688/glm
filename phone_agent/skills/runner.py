@@ -333,6 +333,80 @@ class SkillRunner:
             if isinstance(wait_before_ms, int) and wait_before_ms > 0:
                 time.sleep(wait_before_ms / 1000.0)
 
+            if step.get("action") == "RunSkill":
+                skill_id = step.get("skill_id") or step.get("skill")
+                inputs = step.get("inputs") if isinstance(step.get("inputs"), dict) else {}
+                if not skill_id:
+                    error = SkillError(
+                        code=SkillErrorCode.UNKNOWN,
+                        message="Missing nested skill_id",
+                        stage="action",
+                        step_id=step.get("id"),
+                        attempt=attempt,
+                    )
+                    outcome = self._handle_error(error, step, spec, observation)
+                    step_report.attempts.append(
+                        StepAttemptReport(
+                            attempt=attempt,
+                            action=None,
+                            success=False,
+                            error=outcome.error or error,
+                            started_at=attempt_start,
+                            ended_at=time.time(),
+                        )
+                    )
+                    if outcome.resolution == "continue":
+                        return True, observation, None
+                    if outcome.resolution in ("abort", "escalate"):
+                        return False, observation, outcome.error or error
+                    policy = outcome.retry_policy or retry_policy
+                    if not self._should_retry(error, policy, attempt):
+                        return False, observation, outcome.error or error
+                    self._backoff(attempt, policy)
+                    continue
+
+                nested_result = self.run(skill_id, inputs)
+                if not nested_result.success:
+                    error = SkillError(
+                        code=SkillErrorCode.ACTION_FAILED,
+                        message="Nested skill failed",
+                        stage="action",
+                        step_id=step.get("id"),
+                        attempt=attempt,
+                    )
+                    outcome = self._handle_error(error, step, spec, observation)
+                    step_report.attempts.append(
+                        StepAttemptReport(
+                            attempt=attempt,
+                            action={"action": "RunSkill", "skill_id": skill_id, "inputs": inputs},
+                            success=False,
+                            error=outcome.error or error,
+                            started_at=attempt_start,
+                            ended_at=time.time(),
+                        )
+                    )
+                    if outcome.resolution == "continue":
+                        return True, observation, None
+                    if outcome.resolution in ("abort", "escalate"):
+                        return False, observation, outcome.error or error
+                    policy = outcome.retry_policy or retry_policy
+                    if not self._should_retry(error, policy, attempt):
+                        return False, observation, outcome.error or error
+                    self._backoff(attempt, policy)
+                    continue
+
+                step_report.attempts.append(
+                    StepAttemptReport(
+                        attempt=attempt,
+                        action={"action": "RunSkill", "skill_id": skill_id, "inputs": inputs},
+                        success=True,
+                        error=None,
+                        started_at=attempt_start,
+                        ended_at=time.time(),
+                    )
+                )
+                return True, observation, None
+
             try:
                 action = self._build_action(step, observation)
             except SkillError as exc:
@@ -632,6 +706,18 @@ class SkillRunner:
         actions = handler.get("actions", [])
         for action_spec in actions:
             if not isinstance(action_spec, dict):
+                continue
+            if action_spec.get("action") == "RunSkill":
+                skill_id = action_spec.get("skill_id") or action_spec.get("skill")
+                if not skill_id:
+                    return False
+                inputs = action_spec.get("inputs")
+                if not isinstance(inputs, dict):
+                    inputs = {}
+                result = self.run(skill_id, inputs)
+                if not result.success:
+                    return False
+                observation = self.observer.capture()
                 continue
             try:
                 action = self._build_action(action_spec, observation)

@@ -1,0 +1,29 @@
+schema_version: v1
+id: "publish_edit_caption"
+name: "Publish Edit Caption"
+version: "1.0.0"
+description: "Fill caption/description."
+app:
+  name: "TikTok"
+risk: high
+inputs:
+  caption:
+    type: string
+    default: ""
+preconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Caption", "Description", "文案", "添加文字"]
+steps:
+  - id: "focus_caption"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Caption"
+        match: contains
+    optional: true
+  - id: "type_caption"
+    action: Type
+    text: "{{caption}}"
+    optional: true

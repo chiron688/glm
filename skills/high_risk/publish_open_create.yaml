@@ -1,0 +1,44 @@
+schema_version: v1
+id: "publish_open_create"
+name: "Publish Open Create"
+version: "1.0.0"
+description: "Open create/upload entry."
+app:
+  name: "TikTok"
+risk: high
+preconditions:
+  mode: best_effort
+  condition:
+    app_is: "TikTok"
+steps:
+  - id: "tap_create"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Create"
+        match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 500
+      on_codes: ["TARGET_NOT_FOUND", "ACTION_FAILED"]
+    on_error:
+      - name: "fallback_plus"
+        trigger: on_error
+        codes: ["TARGET_NOT_FOUND"]
+        actions:
+          - action: Tap
+            target:
+              type: selector
+              selector:
+                text: "+"
+                match: exact
+        resolution: retry
+  - id: "wait_upload"
+    action: Wait
+    duration_ms: 800
+    assert:
+      condition:
+        text_any_contains: ["Upload", "Gallery", "Photos", "选择"]
+      timeout_ms: 5000
+      poll_interval_ms: 500

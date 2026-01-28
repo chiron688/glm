@@ -1,0 +1,32 @@
+schema_version: v1
+id: "permission_allow_popup"
+name: "Permission Allow Popup"
+version: "1.0.0"
+description: "Dismiss permission popups by allowing access."
+risk: low
+preconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Allow", "While using the app", "允许", "仅在使用中允许", "使用应用时"]
+steps:
+  - id: "allow_en"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Allow"
+        match: contains
+    optional: true
+  - id: "allow_cn"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "允许"
+        match: contains
+    optional: true
+postconditions:
+  mode: best_effort
+  condition:
+    not:
+      text_any_contains: ["Allow", "允许"]

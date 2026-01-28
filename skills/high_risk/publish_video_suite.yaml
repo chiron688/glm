@@ -1,0 +1,48 @@
+schema_version: v1
+id: "publish_video_suite"
+name: "Publish Video Suite"
+version: "1.0.0"
+description: "High-risk publish workflow composed of sub-skills."
+app:
+  name: "TikTok"
+  packages: ["com.zhiliaoapp.musically"]
+platforms: ["adb", "hdc"]
+risk: high
+routing:
+  keywords: ["发布", "上传", "发布视频", "post", "upload", "publish"]
+  keyword_mode: any
+  priority: 20
+  require_app: ["TikTok"]
+inputs:
+  caption:
+    type: string
+    default: ""
+preconditions:
+  mode: best_effort
+  condition:
+    app_is: "TikTok"
+steps:
+  - id: "open_create"
+    action: RunSkill
+    skill_id: "publish_open_create"
+  - id: "select_upload"
+    action: RunSkill
+    skill_id: "publish_select_upload"
+  - id: "pick_asset"
+    action: RunSkill
+    skill_id: "publish_pick_asset"
+  - id: "edit_caption"
+    action: RunSkill
+    skill_id: "publish_edit_caption"
+    inputs:
+      caption: "{{caption}}"
+  - id: "publish"
+    action: RunSkill
+    skill_id: "publish_post"
+  - id: "verify"
+    action: RunSkill
+    skill_id: "publish_verify_post"
+postconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]

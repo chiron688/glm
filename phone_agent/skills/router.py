@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from phone_agent.skills.conditions import evaluate_condition
@@ -24,6 +24,17 @@ class SkillRouterConfig:
     risk_first: bool = True
     min_score: int = 1
     allow_directive: bool = True
+    enforce_skill_whitelist: bool = False
+    skill_whitelist: list[str] = field(default_factory=list)
+    enforce_on_risk: bool = False
+    risk_keywords: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    action: str
+    directive: SkillDirective | None = None
+    reason: str = ""
 
 
 class SkillRouter:
@@ -33,14 +44,16 @@ class SkillRouter:
 
     def select(
         self, task: str, observation: Any | None = None
-    ) -> SkillDirective | None:
+    ) -> RoutingDecision:
         if not self.config.enabled:
-            return None
+            return RoutingDecision(action="none")
         directive = self._parse_directive(task) if self.config.allow_directive else None
         if directive:
+            if self._is_blocked(directive.skill_id, task):
+                return RoutingDecision(action="block", reason="whitelist-block")
             if self.registry.get(directive.skill_id):
-                return directive
-            return None
+                return RoutingDecision(action="skill", directive=directive, reason=directive.reason)
+            return RoutingDecision(action="none")
 
         candidates: list[tuple[float, SkillDirective]] = []
         for skill in self.registry.list():
@@ -58,9 +71,14 @@ class SkillRouter:
                 )
 
         if not candidates:
-            return None
+            if self._risk_block(task):
+                return RoutingDecision(action="block", reason="risk-requires-skill")
+            return RoutingDecision(action="none")
         candidates.sort(key=lambda item: item[0], reverse=True)
-        return candidates[0][1]
+        decision = candidates[0][1]
+        if self._is_blocked(decision.skill_id, task):
+            return RoutingDecision(action="block", reason="whitelist-block")
+        return RoutingDecision(action="skill", directive=decision, reason=decision.reason)
 
     def _parse_directive(self, task: str) -> SkillDirective | None:
         text = task.strip()
@@ -154,3 +172,18 @@ class SkillRouter:
                 score += 3
 
         return score, reason or "routing"
+
+    def _risk_block(self, task: str) -> bool:
+        if not self.config.enforce_on_risk:
+            return False
+        keywords = self.config.risk_keywords or []
+        lowered = task.casefold()
+        return any(keyword.casefold() in lowered for keyword in keywords if keyword)
+
+    def _is_blocked(self, skill_id: str, task: str) -> bool:
+        if self.config.enforce_skill_whitelist:
+            if skill_id not in self.config.skill_whitelist:
+                return True
+        if self._risk_block(task) and skill_id not in self.config.skill_whitelist:
+            return True
+        return False
