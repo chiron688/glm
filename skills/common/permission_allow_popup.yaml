@@ -1,32 +1,25 @@
 schema_version: v1
 id: "permission_allow_popup"
 name: "Permission Allow Popup"
-version: "1.0.0"
+version: "1.2.1"
 description: "Dismiss permission popups by allowing access."
 risk: low
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Allow", "While using the app", "允许", "仅在使用中允许", "使用应用时"]
+    text_any_contains: "{{allow_markers}}"
 steps:
-  - id: "allow_en"
+  - id: "allow_multi"
     action: Tap
     target:
       type: selector
       selector:
-        text: "Allow"
-        match: contains
-    optional: true
-  - id: "allow_cn"
-    action: Tap
-    target:
-      type: selector
-      selector:
-        text: "允许"
-        match: contains
+        text: "{{rx_allow}}"
+        match: regex
     optional: true
 postconditions:
   mode: best_effort
   condition:
     not:
-      text_any_contains: ["Allow", "允许"]
+      text_any_contains: "{{allow_markers}}"

@@ -1,29 +1,22 @@
 schema_version: v1
 id: "login_flow"
 name: "Login Flow"
-version: "1.0.0"
+version: "1.2.2"
 description: "Generic login flow with user takeover."
 risk: medium
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Log in", "Sign in", "登录", "手机号", "Password", "验证码"]
+    text_any_contains: "{{login_markers}}"
 steps:
-  - id: "tap_login"
+  - id: "tap_login_multi"
     action: Tap
     target:
       type: selector
       selector:
-        text: "Log in"
-        match: contains
-    optional: true
-  - id: "tap_login_cn"
-    action: Tap
-    target:
-      type: selector
-      selector:
-        text: "登录"
-        match: contains
+        text: "{{rx_login}}"
+        match: regex
     optional: true
   - id: "take_over"
     action: Take_over
@@ -32,4 +25,4 @@ postconditions:
   mode: best_effort
   condition:
     not:
-      text_any_contains: ["Log in", "Sign in", "登录"]
+      text_any_contains: "{{login_markers}}"

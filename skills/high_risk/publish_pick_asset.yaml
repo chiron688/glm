@@ -1,15 +1,16 @@
 schema_version: v1
 id: "publish_pick_asset"
 name: "Publish Pick Asset"
-version: "1.0.0"
+version: "1.2.2"
 description: "Pick the first asset and move to edit."
 app:
   name: "TikTok"
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Gallery", "Recent", "All", "相册", "最近"]
+    text_any_contains: "{{recent_tab_markers}}"
 steps:
   - id: "tap_first_asset"
     action: Tap
@@ -24,14 +25,14 @@ steps:
     target:
       type: selector
       selector:
-        text: "Next"
-        match: contains
+        text: "{{rx_next}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 1000
       on_codes: ["TARGET_NOT_FOUND", "POSTCONDITION_FAILED"]
     assert:
       condition:
-        text_any_contains: ["Caption", "Description", "添加文字", "文案"]
+        text_any_contains: "{{caption_markers}}"
       timeout_ms: 8000
       poll_interval_ms: 500

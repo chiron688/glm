@@ -13,6 +13,7 @@ from typing import Any
 from PIL import Image
 
 _TEMPLATE_RE = re.compile(r"\{\{(\w+)\}\}")
+_TEMPLATE_LIST_RE = re.compile(r"^\{\{(\w+)\}\}$")
 
 
 def render_string(value: str, variables: dict[str, Any]) -> str:
@@ -27,6 +28,11 @@ def render_string(value: str, variables: dict[str, Any]) -> str:
 
 def render_templates(obj: Any, variables: dict[str, Any]) -> Any:
     if isinstance(obj, str):
+        match = _TEMPLATE_LIST_RE.match(obj.strip())
+        if match:
+            key = match.group(1)
+            if key in variables and isinstance(variables[key], list):
+                return variables[key]
         return render_string(obj, variables)
     if isinstance(obj, list):
         return [render_templates(item, variables) for item in obj]

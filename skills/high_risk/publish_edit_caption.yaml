@@ -1,11 +1,12 @@
 schema_version: v1
 id: "publish_edit_caption"
 name: "Publish Edit Caption"
-version: "1.0.0"
+version: "1.2.2"
 description: "Fill caption/description."
 app:
   name: "TikTok"
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 inputs:
   caption:
     type: string
@@ -13,15 +14,15 @@ inputs:
 preconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Caption", "Description", "文案", "添加文字"]
+    text_any_contains: "{{caption_markers}}"
 steps:
   - id: "focus_caption"
     action: Tap
     target:
       type: selector
       selector:
-        text: "Caption"
-        match: contains
+        text: "{{rx_caption}}"
+        match: regex
     optional: true
   - id: "type_caption"
     action: Type

@@ -185,6 +185,16 @@ def pick_best_node(nodes: list[UINode]) -> UINode | None:
 def resolve_selector_to_point(
     nodes: list[UINode], selector: dict[str, Any]
 ) -> tuple[int, int] | None:
+    if selector.get("resource_id"):
+        matches = [
+            node
+            for node in nodes
+            if _match_text(node.resource_id, selector["resource_id"], selector.get("match", "contains"))
+        ]
+        if matches:
+            best = pick_best_node(matches)
+            if best:
+                return best.center
     matches = find_nodes(nodes, selector)
     if not matches:
         return None

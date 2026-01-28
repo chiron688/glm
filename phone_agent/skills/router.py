@@ -7,8 +7,11 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
+import yaml
+
 from phone_agent.skills.conditions import evaluate_condition
 from phone_agent.skills.registry import SkillRegistry
+from phone_agent.skills.utils import render_templates
 
 
 @dataclass(frozen=True)
@@ -28,6 +31,7 @@ class SkillRouterConfig:
     skill_whitelist: list[str] = field(default_factory=list)
     enforce_on_risk: bool = False
     risk_keywords: list[str] = field(default_factory=list)
+    default_vocab_path: str | None = "skills/common/vocab.yaml"
 
 
 @dataclass(frozen=True)
@@ -114,7 +118,7 @@ class SkillRouter:
         reason = ""
 
         # Keyword match
-        keywords = routing.get("keywords")
+        keywords = self._expand_routing_list(routing.get("keywords"), spec)
         if isinstance(keywords, list) and keywords:
             lowered = task.casefold()
             hits = sum(1 for keyword in keywords if keyword and keyword.casefold() in lowered)
@@ -127,7 +131,7 @@ class SkillRouter:
             reason = "keyword"
 
         # Regex match
-        regex_list = routing.get("task_regex")
+        regex_list = self._expand_routing_list(routing.get("task_regex"), spec)
         if isinstance(regex_list, list) and regex_list:
             matched = False
             for pattern in regex_list:
@@ -172,6 +176,40 @@ class SkillRouter:
                 score += 3
 
         return score, reason or "routing"
+
+    def _expand_routing_list(self, values: Any, spec: dict[str, Any]) -> list[str] | Any:
+        if not isinstance(values, list):
+            return values
+        vocab = self._load_vocab(spec)
+        if not vocab:
+            return values
+        rendered = render_templates(values, vocab)
+        flattened: list[str] = []
+        for item in rendered:
+            if isinstance(item, list):
+                for sub in item:
+                    if isinstance(sub, str) and sub.strip():
+                        flattened.append(sub)
+            elif isinstance(item, str) and item.strip():
+                flattened.append(item)
+        return flattened
+
+    def _load_vocab(self, spec: dict[str, Any]) -> dict[str, Any]:
+        vocab: dict[str, Any] = {}
+        inline = spec.get("vocab")
+        if isinstance(inline, dict):
+            vocab.update(inline)
+        path = spec.get("vocab_path") or self.config.default_vocab_path
+        if not path:
+            return vocab
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                data = yaml.safe_load(handle)
+            if isinstance(data, dict):
+                vocab.update(data)
+        except Exception:
+            return vocab
+        return vocab
 
     def _risk_block(self, task: str) -> bool:
         if not self.config.enforce_on_risk:

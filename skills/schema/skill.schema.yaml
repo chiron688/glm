@@ -37,6 +37,11 @@ properties:
   vars:
     type: object
     additionalProperties: true
+  vocab_path:
+    type: string
+  vocab:
+    type: object
+    additionalProperties: true
   inputs:
     type: object
     additionalProperties:

@@ -1,7 +1,7 @@
 schema_version: v1
 id: "video_publish_template"
 name: "Video Publish Template"
-version: "1.0.0"
+version: "1.3.3"
 description: "Template skill for publishing a video with robust error handling."
 app:
   name: "TikTok"
@@ -9,11 +9,7 @@ app:
     - "com.zhiliaoapp.musically"
 platforms: ["adb"]
 risk: high
-routing:
-  keywords: ["发布", "上传", "post", "upload"]
-  keyword_mode: any
-  priority: 10
-  require_app: ["TikTok"]
+vocab_path: "skills/common/vocab.yaml"
 vars:
   default_caption: ""
 inputs:
@@ -31,26 +27,26 @@ error_handlers:
   - name: "dismiss_update_prompt"
     trigger: before_step
     when:
-      text_any_contains: ["Update", "Later"]
+      text_any_contains: "{{update_prompt_markers}}"
     actions:
       - action: Tap
         target:
           type: selector
           selector:
-            text: "Later"
-            match: exact
+            text: "{{rx_later}}"
+            match: regex
     resolution: continue
   - name: "permission_allow"
     trigger: before_step
     when:
-      text_any_contains: ["Allow", "While using the app"]
+      text_any_contains: "{{allow_markers}}"
     actions:
       - action: Tap
         target:
           type: selector
           selector:
-            text: "Allow"
-            match: contains
+            text: "{{rx_allow}}"
+            match: regex
     resolution: continue
 steps:
   - id: "open_create"
@@ -58,8 +54,8 @@ steps:
     target:
       type: selector
       selector:
-        text: "Create"
-        match: contains
+        text: "{{rx_create}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 500
@@ -81,11 +77,11 @@ steps:
     target:
       type: selector
       selector:
-        text: "Upload"
-        match: contains
+        text: "{{rx_upload}}"
+        match: regex
     assert:
       condition:
-        text_any_contains: ["Gallery", "Photos"]
+        text_any_contains: "{{gallery_markers}}"
       timeout_ms: 5000
       poll_interval_ms: 500
   - id: "pick_first_asset"
@@ -101,23 +97,23 @@ steps:
     target:
       type: selector
       selector:
-        text: "Next"
-        match: contains
+        text: "{{rx_next}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 800
       on_codes: ["ACTION_FAILED", "POSTCONDITION_FAILED"]
     assert:
       condition:
-        text_any_contains: ["Caption", "Description"]
+        text_any_contains: "{{caption_markers}}"
       timeout_ms: 6000
   - id: "enter_caption"
     action: Tap
     target:
       type: selector
       selector:
-        text: "Caption"
-        match: contains
+        text: "{{rx_caption}}"
+        match: regex
   - id: "type_caption"
     action: Type
     text: "{{caption}}"
@@ -127,17 +123,17 @@ steps:
     target:
       type: selector
       selector:
-        text: "Post"
-        match: contains
+        text: "{{rx_post}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 1000
       on_codes: ["ACTION_FAILED", "POSTCONDITION_FAILED"]
     assert:
       condition:
-        text_any_contains: ["Posted", "Upload complete"]
+        text_any_contains: "{{upload_success_markers}}"
       timeout_ms: 15000
 postconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Posted", "Upload complete"]
+    text_any_contains: "{{upload_success_markers}}"

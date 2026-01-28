@@ -1,29 +1,30 @@
 schema_version: v1
 id: "publish_select_upload"
 name: "Publish Select Upload"
-version: "1.0.0"
+version: "1.2.2"
 description: "Open gallery uploader."
 app:
   name: "TikTok"
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Upload", "Gallery", "Photos", "选择"]
+    text_any_contains: "{{gallery_markers}}"
 steps:
   - id: "tap_upload"
     action: Tap
     target:
       type: selector
       selector:
-        text: "Upload"
-        match: contains
+        text: "{{rx_upload}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 800
       on_codes: ["TARGET_NOT_FOUND", "ACTION_FAILED"]
     assert:
       condition:
-        text_any_contains: ["Gallery", "Recent", "All", "相册", "最近"]
+        text_any_contains: "{{recent_tab_markers}}"
       timeout_ms: 5000
       poll_interval_ms: 500

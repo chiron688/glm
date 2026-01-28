@@ -1,11 +1,12 @@
 schema_version: v1
 id: "publish_open_create"
 name: "Publish Open Create"
-version: "1.0.0"
+version: "1.2.2"
 description: "Open create/upload entry."
 app:
   name: "TikTok"
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
@@ -16,8 +17,8 @@ steps:
     target:
       type: selector
       selector:
-        text: "Create"
-        match: contains
+        text: "{{rx_create}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 500
@@ -39,6 +40,6 @@ steps:
     duration_ms: 800
     assert:
       condition:
-        text_any_contains: ["Upload", "Gallery", "Photos", "选择"]
+        text_any_contains: "{{gallery_markers}}"
       timeout_ms: 5000
       poll_interval_ms: 500

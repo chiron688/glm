@@ -6,6 +6,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+import yaml
+
 from phone_agent.actions import ActionHandler
 from phone_agent.skills.common_handlers import load_common_handlers
 from phone_agent.skills.conditions import evaluate_condition
@@ -51,6 +53,7 @@ class SkillRunnerConfig:
     dry_run: bool = False
     common_error_handlers_path: str | None = None
     common_error_handlers: list[dict[str, Any]] | None = None
+    default_vocab_path: str | None = "skills/common/vocab.yaml"
     record_dir: str | None = None
     playback_dir: str | None = None
 
@@ -211,6 +214,10 @@ class SkillRunner:
 
     def _prepare_variables(self, spec: dict[str, Any], inputs: dict[str, Any]) -> dict[str, Any]:
         variables = dict(spec.get("vars", {}))
+        vocab = self._load_vocab(spec)
+        if vocab:
+            for key, value in vocab.items():
+                variables.setdefault(key, value)
         input_specs = spec.get("inputs", {})
         if isinstance(input_specs, dict):
             for name, meta in input_specs.items():
@@ -237,6 +244,23 @@ class SkillRunner:
         # Resolve nested templates inside variables (e.g. defaults referencing vars).
         variables = render_templates(variables, variables)
         return variables
+
+    def _load_vocab(self, spec: dict[str, Any]) -> dict[str, Any]:
+        vocab: dict[str, Any] = {}
+        inline = spec.get("vocab")
+        if isinstance(inline, dict):
+            vocab.update(inline)
+        path = spec.get("vocab_path") or self.config.default_vocab_path
+        if not path:
+            return vocab
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                data = yaml.safe_load(handle)
+            if isinstance(data, dict):
+                vocab.update(data)
+        except Exception:
+            return vocab
+        return vocab
 
     def _load_common_handlers(self, variables: dict[str, Any]) -> list[dict[str, Any]]:
         handlers: list[dict[str, Any]] = []

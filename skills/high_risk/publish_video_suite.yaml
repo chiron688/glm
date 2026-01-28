@@ -1,15 +1,17 @@
 schema_version: v1
 id: "publish_video_suite"
 name: "Publish Video Suite"
-version: "1.0.0"
+version: "1.2.1"
 description: "High-risk publish workflow composed of sub-skills."
 app:
   name: "TikTok"
   packages: ["com.zhiliaoapp.musically"]
 platforms: ["adb", "hdc"]
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 routing:
-  keywords: ["发布", "上传", "发布视频", "post", "upload", "publish"]
+  keywords:
+    - "{{routing_publish_keywords}}"
   keyword_mode: any
   priority: 20
   require_app: ["TikTok"]
@@ -41,8 +43,8 @@ steps:
     skill_id: "publish_post"
   - id: "verify"
     action: RunSkill
-    skill_id: "publish_verify_post"
+    skill_id: "publish_verify_post_strict"
 postconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]
+    text_any_contains: "{{upload_success_markers}}"

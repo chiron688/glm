@@ -5,6 +5,7 @@ This folder contains YAML skills and the schema that defines them.
 ## Structure
 
 - `schema/skill.schema.yaml`: JSON Schema for skill definitions.
+- `common/vocab.yaml`: Shared regex vocabulary for selectors.
 - `examples/`: Example skills demonstrating retries, guards, and handlers.
 
 ## Runtime usage
@@ -54,6 +55,7 @@ python scripts/run_skill.py --skill-id publish_video_suite --inputs '{"caption":
 - Recording/playback: set `SkillRunnerConfig.record_dir` to record, or `playback_dir` to replay.
 - OCR selectors: pass an OCR provider (e.g. `TesseractOcrProvider`) in `SkillRunnerConfig.ocr_provider`.
 - `RunSkill` can be used in steps or handlers to compose workflows.
+- `vocab_path` can be set in a skill to load shared regex selectors (see `skills/common/vocab.yaml`). By default the runner loads `skills/common/vocab.yaml` for all skills.
 
 ## Error codes
 

@@ -1,17 +1,18 @@
 schema_version: v1
 id: "publish_verify_post"
 name: "Publish Verify Post"
-version: "1.0.0"
+version: "1.2.2"
 description: "Verify publish success state."
 app:
   name: "TikTok"
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
     any:
-      - text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]
-      - text_any_contains: ["Your video", "作品", "主页"]
+      - text_any_contains: "{{upload_success_markers}}"
+      - text_any_contains: "{{post_view_markers}}"
 steps:
   - id: "wait_success"
     action: Wait
@@ -19,4 +20,4 @@ steps:
 postconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]
+    text_any_contains: "{{upload_success_markers}}"

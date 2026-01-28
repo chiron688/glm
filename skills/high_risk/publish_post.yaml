@@ -1,15 +1,16 @@
 schema_version: v1
 id: "publish_post"
 name: "Publish Post"
-version: "1.0.0"
+version: "1.2.3"
 description: "Tap post and confirm publish."
 app:
   name: "TikTok"
 risk: high
+vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort
   condition:
-    text_any_contains: ["Post", "发布", "Caption", "Description", "文案"]
+    text_any_contains: "{{post_action_markers}}"
 steps:
   - id: "tap_post"
     action: Tap
@@ -17,14 +18,14 @@ steps:
     target:
       type: selector
       selector:
-        text: "Post"
-        match: contains
+        text: "{{rx_post}}"
+        match: regex
     retry:
       max_attempts: 2
       backoff_ms: 1500
       on_codes: ["ACTION_FAILED", "POSTCONDITION_FAILED"]
     assert:
       condition:
-        text_any_contains: ["Posted", "Upload complete", "已发布", "发布成功"]
+        text_any_contains: "{{upload_success_markers}}"
       timeout_ms: 15000
       poll_interval_ms: 1000
