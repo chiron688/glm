@@ -1,0 +1,52 @@
+schema_version: v1
+id: "publish_verify_post_strict"
+name: "Publish Verify Post Strict"
+version: "1.0.0"
+description: "Strict verification by checking profile posts for recent timestamp."
+app:
+  name: "TikTok"
+risk: high
+preconditions:
+  mode: best_effort
+  condition:
+    app_is: "TikTok"
+steps:
+  - id: "go_profile"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Profile"
+        match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 600
+      on_codes: ["TARGET_NOT_FOUND", "ACTION_FAILED"]
+    assert:
+      condition:
+        text_any_contains: ["Profile", "作品", "个人主页", "Me"]
+      timeout_ms: 6000
+      poll_interval_ms: 500
+
+  - id: "open_posts_tab"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Posts"
+        match: contains
+    optional: true
+
+  - id: "check_recent"
+    action: Wait
+    duration_ms: 800
+    assert:
+      condition:
+        text_any_contains: ["Just now", "刚刚", "1 minute", "1 分钟", "moments ago", "刚才"]
+      timeout_ms: 8000
+      poll_interval_ms: 1000
+
+postconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Just now", "刚刚", "1 minute", "1 分钟", "moments ago", "刚才"]
