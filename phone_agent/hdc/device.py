@@ -77,6 +77,38 @@ def get_current_app(device_id: str | None = None) -> str:
     return "System Home"
 
 
+def get_ui_tree(device_id: str | None = None, timeout: int = 10) -> str | None:
+    """
+    Dump the current UI hierarchy as XML.
+
+    HarmonyOS UI dump support varies by device; return None when unavailable.
+    """
+    hdc_prefix = _get_hdc_prefix(device_id)
+    try:
+        result = _run_hdc_command(
+            hdc_prefix + ["shell", "uitest", "dumpLayout"],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            encoding="utf-8",
+        )
+        if result.returncode != 0:
+            return None
+        output = (result.stdout or "").strip()
+        if not output:
+            return None
+        # Some devices prepend logs; try to extract JSON payload.
+        start = output.find("{")
+        end = output.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            output = output[start : end + 1]
+        if not output.startswith("{") and not output.startswith("["):
+            return None
+        return output
+    except Exception:
+        return None
+
+
 def tap(
     x: int, y: int, device_id: str | None = None, delay: float | None = None
 ) -> None:

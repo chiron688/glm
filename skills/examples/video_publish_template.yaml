@@ -1,0 +1,143 @@
+schema_version: v1
+id: "video_publish_template"
+name: "Video Publish Template"
+version: "1.0.0"
+description: "Template skill for publishing a video with robust error handling."
+app:
+  name: "TikTok"
+  packages:
+    - "com.zhiliaoapp.musically"
+platforms: ["adb"]
+risk: high
+routing:
+  keywords: ["发布", "上传", "post", "upload"]
+  keyword_mode: any
+  priority: 10
+  require_app: ["TikTok"]
+vars:
+  default_caption: ""
+inputs:
+  video_path:
+    type: file
+    required: true
+  caption:
+    type: string
+    default: "{{default_caption}}"
+preconditions:
+  mode: best_effort
+  condition:
+    app_is: "TikTok"
+error_handlers:
+  - name: "dismiss_update_prompt"
+    trigger: before_step
+    when:
+      text_any_contains: ["Update", "Later"]
+    actions:
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "Later"
+            match: exact
+    resolution: continue
+  - name: "permission_allow"
+    trigger: before_step
+    when:
+      text_any_contains: ["Allow", "While using the app"]
+    actions:
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "Allow"
+            match: contains
+    resolution: continue
+steps:
+  - id: "open_create"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Create"
+        match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 500
+      on_codes: ["TARGET_NOT_FOUND", "ACTION_FAILED"]
+    on_error:
+      - name: "fallback_plus_button"
+        trigger: on_error
+        codes: ["TARGET_NOT_FOUND"]
+        actions:
+          - action: Tap
+            target:
+              type: selector
+              selector:
+                text: "+"
+                match: exact
+        resolution: retry
+  - id: "select_video"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Upload"
+        match: contains
+    assert:
+      condition:
+        text_any_contains: ["Gallery", "Photos"]
+      timeout_ms: 5000
+      poll_interval_ms: 500
+  - id: "pick_first_asset"
+    action: Tap
+    target:
+      type: coords
+      coords: [500, 350]
+      coords_type: relative
+    wait:
+      after_ms: 800
+  - id: "confirm_asset"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Next"
+        match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 800
+      on_codes: ["ACTION_FAILED", "POSTCONDITION_FAILED"]
+    assert:
+      condition:
+        text_any_contains: ["Caption", "Description"]
+      timeout_ms: 6000
+  - id: "enter_caption"
+    action: Tap
+    target:
+      type: selector
+      selector:
+        text: "Caption"
+        match: contains
+  - id: "type_caption"
+    action: Type
+    text: "{{caption}}"
+  - id: "publish"
+    action: Tap
+    confirm: "Publish content to external platform"
+    target:
+      type: selector
+      selector:
+        text: "Post"
+        match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 1000
+      on_codes: ["ACTION_FAILED", "POSTCONDITION_FAILED"]
+    assert:
+      condition:
+        text_any_contains: ["Posted", "Upload complete"]
+      timeout_ms: 15000
+postconditions:
+  mode: best_effort
+  condition:
+    text_any_contains: ["Posted", "Upload complete"]

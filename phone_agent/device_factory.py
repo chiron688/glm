@@ -53,6 +53,12 @@ class DeviceFactory:
         """获取当前应用名称。"""
         return self.module.get_current_app(device_id)
 
+    def get_ui_tree(self, device_id: str | None = None, timeout: int = 10) -> str | None:
+        """获取当前 UI 层级 XML（若支持）。"""
+        if hasattr(self.module, "get_ui_tree"):
+            return self.module.get_ui_tree(device_id, timeout)
+        return None
+
     def tap(
         self, x: int, y: int, device_id: str | None = None, delay: float | None = None
     ):

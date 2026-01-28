@@ -1,0 +1,96 @@
+error_handlers:
+  - name: "dismiss_update_prompt"
+    trigger: before_step
+    when:
+      text_any_contains: ["Update", "Later", "Not now", "以后", "稍后", "暂不"]
+    actions:
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "Later"
+            match: contains
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "稍后"
+            match: contains
+    resolution: continue
+
+  - name: "permission_allow"
+    trigger: before_step
+    when:
+      text_any_contains: ["Allow", "While using the app", "允许", "仅在使用中允许", "使用应用时"]
+    actions:
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "Allow"
+            match: contains
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "允许"
+            match: contains
+    resolution: continue
+
+  - name: "network_retry"
+    trigger: on_error
+    codes: ["POSTCONDITION_FAILED", "SCREEN_MISMATCH", "TARGET_NOT_FOUND"]
+    when:
+      text_any_contains: ["Network error", "Try again", "重试", "网络", "连接失败"]
+    actions:
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "Retry"
+            match: contains
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "重试"
+            match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 1000
+      on_codes: ["POSTCONDITION_FAILED", "SCREEN_MISMATCH", "TARGET_NOT_FOUND"]
+    resolution: retry
+
+  - name: "login_required"
+    trigger: on_error
+    codes: ["SCREEN_MISMATCH", "POSTCONDITION_FAILED"]
+    when:
+      text_any_contains: ["Log in", "Sign in", "登录", "验证", "验证码"]
+    actions:
+      - action: Take_over
+        message: "Login required"
+    resolution: escalate
+
+  - name: "upload_failed_retry"
+    trigger: on_error
+    codes: ["POSTCONDITION_FAILED", "ACTION_FAILED"]
+    when:
+      text_any_contains: ["Upload failed", "Failed", "上传失败", "失败"]
+    actions:
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "Retry"
+            match: contains
+      - action: Tap
+        target:
+          type: selector
+          selector:
+            text: "重试"
+            match: contains
+    retry:
+      max_attempts: 2
+      backoff_ms: 1500
+      on_codes: ["POSTCONDITION_FAILED", "ACTION_FAILED"]
+    resolution: retry

@@ -38,6 +38,37 @@ def get_current_app(device_id: str | None = None) -> str:
     return "System Home"
 
 
+def get_ui_tree(device_id: str | None = None, timeout: int = 10) -> str | None:
+    """
+    Dump the current UI hierarchy as XML using uiautomator.
+
+    Returns None if the dump fails or is unavailable.
+    """
+    adb_prefix = _get_adb_prefix(device_id)
+    remote_path = "/sdcard/uidump.xml"
+    try:
+        subprocess.run(
+            adb_prefix + ["shell", "uiautomator", "dump", remote_path],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        result = subprocess.run(
+            adb_prefix + ["shell", "cat", remote_path],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        if result.returncode != 0:
+            return None
+        xml = result.stdout.strip()
+        if "<hierarchy" not in xml:
+            return None
+        return xml
+    except Exception:
+        return None
+
+
 def tap(
     x: int, y: int, device_id: str | None = None, delay: float | None = None
 ) -> None:

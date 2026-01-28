@@ -7,6 +7,31 @@ Phone Agent - AI 驱动的手机自动化框架。
 
 from phone_agent.agent import PhoneAgent
 from phone_agent.agent_ios import IOSPhoneAgent
+from phone_agent.skills import (
+    SkillError,
+    SkillErrorCode,
+    SkillRouter,
+    SkillRouterConfig,
+    SkillRegistry,
+    SkillRunner,
+    SkillRunnerConfig,
+    SkillSchemaError,
+    OcrProvider,
+    TesseractOcrProvider,
+)
 
 __version__ = "0.1.0"
-__all__ = ["PhoneAgent", "IOSPhoneAgent"]
+__all__ = [
+    "PhoneAgent",
+    "IOSPhoneAgent",
+    "SkillError",
+    "SkillErrorCode",
+    "SkillRouter",
+    "SkillRouterConfig",
+    "SkillRegistry",
+    "SkillRunner",
+    "SkillRunnerConfig",
+    "SkillSchemaError",
+    "OcrProvider",
+    "TesseractOcrProvider",
+]

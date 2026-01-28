@@ -11,6 +11,13 @@ from phone_agent.config import get_messages, get_system_prompt
 from phone_agent.device_factory import get_device_factory
 from phone_agent.model import ModelClient, ModelConfig
 from phone_agent.model.client import MessageBuilder
+from phone_agent.skills import (
+    SkillRegistry,
+    SkillRunner,
+    SkillRunnerConfig,
+    SkillRouter,
+    SkillRouterConfig,
+)
 
 
 @dataclass
@@ -22,6 +29,12 @@ class AgentConfig:
     lang: str = "cn"
     system_prompt: str | None = None
     verbose: bool = True
+    skill_paths: list[str] | None = None
+    enable_skill_routing: bool = False
+    skill_fallback_to_model: bool = True
+    skill_common_handlers_path: str | None = None
+    skill_record_dir: str | None = None
+    skill_playback_dir: str | None = None
 
     def __post_init__(self):
         if self.system_prompt is None:
@@ -66,6 +79,9 @@ class PhoneAgent:
         agent_config: AgentConfig | None = None,
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
+        skill_registry: SkillRegistry | None = None,
+        skill_runner_config: SkillRunnerConfig | None = None,
+        skill_router: SkillRouter | None = None,
     ):
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or AgentConfig()
@@ -76,6 +92,30 @@ class PhoneAgent:
             confirmation_callback=confirmation_callback,
             takeover_callback=takeover_callback,
         )
+
+        self.skill_registry = skill_registry
+        if self.skill_registry is None and self.agent_config.skill_paths:
+            registry = SkillRegistry()
+            registry.load_from_paths(self.agent_config.skill_paths)
+            self.skill_registry = registry
+
+        self.skill_runner = None
+        if self.skill_registry is not None:
+            runner_config = skill_runner_config or SkillRunnerConfig(
+                common_error_handlers_path=self.agent_config.skill_common_handlers_path,
+                record_dir=self.agent_config.skill_record_dir,
+                playback_dir=self.agent_config.skill_playback_dir,
+            )
+            self.skill_runner = SkillRunner(
+                self.skill_registry,
+                config=runner_config,
+                device_id=self.agent_config.device_id,
+                action_handler=self.action_handler,
+            )
+
+        self.skill_router = skill_router
+        if self.skill_router is None and self.skill_registry is not None:
+            self.skill_router = SkillRouter(self.skill_registry, SkillRouterConfig())
 
         self._context: list[dict[str, Any]] = []
         self._step_count = 0
@@ -92,6 +132,12 @@ class PhoneAgent:
         """
         self._context = []
         self._step_count = 0
+
+        # Skills routing (high-risk tasks prioritized)
+        skill_result = self._try_run_skill(task)
+        if skill_result is not None:
+            if skill_result.success or not self.agent_config.skill_fallback_to_model:
+                return skill_result.message
 
         # 首次步骤包含用户提示
         result = self._execute_step(task, is_first=True)
@@ -131,6 +177,22 @@ class PhoneAgent:
         """为新任务重置 Agent 状态。"""
         self._context = []
         self._step_count = 0
+
+    def _try_run_skill(self, task: str):
+        if not self.agent_config.enable_skill_routing:
+            return None
+        if self.skill_registry is None or self.skill_runner is None or self.skill_router is None:
+            return None
+        try:
+            observation = self.skill_runner.observer.capture()
+        except Exception:
+            observation = None
+        decision = self.skill_router.select(task, observation)
+        if decision is None:
+            return None
+        if self.agent_config.verbose:
+            print(f"🧭 Skill routing to '{decision.skill_id}' ({decision.reason})")
+        return self.skill_runner.run(decision.skill_id, decision.inputs)
 
     def _execute_step(
         self, user_prompt: str | None = None, is_first: bool = False

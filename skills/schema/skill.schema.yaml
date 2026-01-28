@@ -1,0 +1,288 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Phone Agent Skill Schema"
+type: object
+required:
+  - id
+  - name
+  - version
+  - steps
+properties:
+  schema_version:
+    type: string
+    default: v1
+  id:
+    type: string
+  name:
+    type: string
+  version:
+    type: string
+  description:
+    type: string
+  app:
+    type: object
+    properties:
+      name:
+        type: string
+      packages:
+        type: array
+        items:
+          type: string
+  platforms:
+    type: array
+    items:
+      type: string
+  risk:
+    type: string
+    enum: [low, medium, high]
+  vars:
+    type: object
+    additionalProperties: true
+  inputs:
+    type: object
+    additionalProperties:
+      type: object
+      properties:
+        type:
+          type: string
+        required:
+          type: boolean
+        default:
+          type: [string, number, boolean, object, array, "null"]
+  preconditions:
+    $ref: "#/definitions/conditionBlock"
+  postconditions:
+    $ref: "#/definitions/conditionBlock"
+  steps:
+    type: array
+    items:
+      $ref: "#/definitions/step"
+  error_handlers:
+    type: array
+    items:
+      $ref: "#/definitions/handler"
+  routing:
+    type: object
+    properties:
+      keywords:
+        type: array
+        items:
+          type: string
+      keyword_mode:
+        type: string
+        enum: [any, all]
+      task_regex:
+        type: array
+        items:
+          type: string
+      priority:
+        type: integer
+      require_app:
+        type: array
+        items:
+          type: string
+      preconditions:
+        $ref: "#/definitions/condition"
+
+definitions:
+  conditionBlock:
+    oneOf:
+      - $ref: "#/definitions/condition"
+      - type: object
+        properties:
+          condition:
+            $ref: "#/definitions/condition"
+          timeout_ms:
+            type: integer
+          poll_interval_ms:
+            type: integer
+          mode:
+            type: string
+            enum: [strict, best_effort]
+  condition:
+    type: object
+    properties:
+      all:
+        type: array
+        items:
+          $ref: "#/definitions/condition"
+      any:
+        type: array
+        items:
+          $ref: "#/definitions/condition"
+      not:
+        $ref: "#/definitions/condition"
+      app_is:
+        oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+      app_in:
+        type: array
+        items:
+          type: string
+      text_all:
+        type: array
+        items:
+          type: string
+      text_any:
+        type: array
+        items:
+          type: string
+      text_contains:
+        type: array
+        items:
+          type: string
+      text_any_contains:
+        type: array
+        items:
+          type: string
+      text_regex_all:
+        type: array
+        items:
+          type: string
+      text_regex_any:
+        type: array
+        items:
+          type: string
+      selector:
+        type: object
+        additionalProperties: true
+      screen_hash:
+        oneOf:
+          - type: string
+          - type: object
+            properties:
+              value:
+                type: string
+              distance:
+                type: integer
+  retry:
+    type: object
+    properties:
+      max_attempts:
+        type: integer
+      backoff_ms:
+        type: integer
+      backoff_multiplier:
+        type: number
+      max_backoff_ms:
+        type: integer
+      jitter_ms:
+        type: integer
+      on_codes:
+        type: array
+        items:
+          type: string
+  target:
+    type: object
+    properties:
+      type:
+        type: string
+        enum: [coords, selector, bounds]
+      coords:
+        type: array
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
+      coords_type:
+        type: string
+        enum: [relative, absolute, percent]
+      bounds:
+        type: array
+        items:
+          type: number
+        minItems: 4
+        maxItems: 4
+      selector:
+        type: object
+        additionalProperties: true
+      offset:
+        type: array
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
+  wait:
+    type: object
+    properties:
+      before_ms:
+        type: integer
+      after_ms:
+        type: integer
+  action:
+    type: object
+    required:
+      - action
+    properties:
+      id:
+        type: string
+      action:
+        type: string
+      target:
+        $ref: "#/definitions/target"
+      start:
+        $ref: "#/definitions/target"
+      end:
+        $ref: "#/definitions/target"
+      text:
+        type: string
+      app:
+        type: string
+      duration:
+        type: string
+      duration_ms:
+        type: integer
+      confirm:
+        type: string
+      message:
+        type: string
+      wait:
+        $ref: "#/definitions/wait"
+  step:
+    allOf:
+      - $ref: "#/definitions/action"
+      - type: object
+        properties:
+          guard:
+            $ref: "#/definitions/conditionBlock"
+          assert:
+            $ref: "#/definitions/conditionBlock"
+          retry:
+            $ref: "#/definitions/retry"
+          optional:
+            type: boolean
+          on_error:
+            type: array
+            items:
+              $ref: "#/definitions/handler"
+  handler:
+    type: object
+    properties:
+      name:
+        type: string
+      trigger:
+        type: string
+        enum: [before_step, on_error]
+      codes:
+        type: array
+        items:
+          type: string
+      error_ids:
+        type: array
+        items:
+          type: string
+      when:
+        $ref: "#/definitions/condition"
+      actions:
+        type: array
+        items:
+          $ref: "#/definitions/action"
+      retry:
+        $ref: "#/definitions/retry"
+      resolution:
+        type: string
+        enum: [retry, continue, abort, escalate]
+      takeover_message:
+        type: string
