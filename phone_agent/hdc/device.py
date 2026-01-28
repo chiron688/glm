@@ -1,4 +1,4 @@
-"""Device control utilities for HarmonyOS automation."""
+"""用于 HarmonyOS 自动化的设备控制工具。"""
 
 import os
 import subprocess
@@ -12,17 +12,17 @@ import re
 
 def get_current_app(device_id: str | None = None) -> str:
     """
-    Get the currently focused app name.
+    获取当前前台应用名称。
 
-    Args:
-        device_id: Optional HDC device ID for multi-device setups.
+    参数:
+        device_id: 可选的 HDC 设备 ID（多设备场景）。
 
-    Returns:
-        The app name if recognized, otherwise "System Home".
+    返回:
+        若可识别则返回应用名称，否则返回 "System Home"。
     """
     hdc_prefix = _get_hdc_prefix(device_id)
 
-    # Use 'aa dump -l' to list running abilities
+    # 使用 'aa dump -l' 列出运行中的 Ability
     result = _run_hdc_command(
         hdc_prefix + ["shell", "aa", "dump", "-l"],
         capture_output=True,
@@ -34,8 +34,8 @@ def get_current_app(device_id: str | None = None) -> str:
     if not output:
         raise ValueError("No output from aa dump")
 
-    # Parse missions and find the one with FOREGROUND state
-    # Output format:
+    # 解析任务并找到处于 FOREGROUND 状态的任务
+    # 输出格式:
     # Mission ID #139
     # mission name #[#com.kuaishou.hmapp:kwai:EntryAbility]
     # app name [com.kuaishou.hmapp]
@@ -49,28 +49,28 @@ def get_current_app(device_id: str | None = None) -> str:
     current_bundle = None
 
     for line in lines:
-        # Track the current mission's bundle name
+        # 跟踪当前任务的 bundle 名称
         if "app name [" in line:
             match = re.search(r'\[([^\]]+)\]', line)
             if match:
                 current_bundle = match.group(1)
 
-        # Check if this mission is in FOREGROUND state
+        # 检查该任务是否处于 FOREGROUND 状态
         if "state #FOREGROUND" in line or "state #foreground" in line.lower():
             if current_bundle:
                 foreground_bundle = current_bundle
-                break  # Found the foreground app, no need to continue
+                break  # 已找到前台应用，无需继续
 
-        # Reset current_bundle when starting a new mission
+        # 开始新任务时重置 current_bundle
         if "Mission ID" in line:
             current_bundle = None
 
-    # Match against known apps
+    # 与已知应用进行匹配
     if foreground_bundle:
         for app_name, package in APP_PACKAGES.items():
             if package == foreground_bundle:
                 return app_name
-        # If bundle is found but not in our known apps, return the bundle name
+        # 若 bundle 不在已知应用列表中，则返回 bundle 名称
         print(f'Bundle is found but not in our known apps: {foreground_bundle}')
         return foreground_bundle
     print(f'No bundle is found')
@@ -81,20 +81,20 @@ def tap(
     x: int, y: int, device_id: str | None = None, delay: float | None = None
 ) -> None:
     """
-    Tap at the specified coordinates.
+    在指定坐标点击。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after tap. If None, uses configured default.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        device_id: 可选的 HDC 设备 ID。
+        delay: 点击后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_tap_delay
 
     hdc_prefix = _get_hdc_prefix(device_id)
 
-    # HarmonyOS uses uitest uiInput click
+    # HarmonyOS 使用 uitest uiInput click
     _run_hdc_command(
         hdc_prefix + ["shell", "uitest", "uiInput", "click", str(x), str(y)],
         capture_output=True
@@ -106,20 +106,20 @@ def double_tap(
     x: int, y: int, device_id: str | None = None, delay: float | None = None
 ) -> None:
     """
-    Double tap at the specified coordinates.
+    在指定坐标双击。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after double tap. If None, uses configured default.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        device_id: 可选的 HDC 设备 ID。
+        delay: 双击后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_double_tap_delay
 
     hdc_prefix = _get_hdc_prefix(device_id)
 
-    # HarmonyOS uses uitest uiInput doubleClick
+    # HarmonyOS 使用 uitest uiInput doubleClick
     _run_hdc_command(
         hdc_prefix + ["shell", "uitest", "uiInput", "doubleClick", str(x), str(y)],
         capture_output=True
@@ -135,22 +135,22 @@ def long_press(
     delay: float | None = None,
 ) -> None:
     """
-    Long press at the specified coordinates.
+    在指定坐标长按。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        duration_ms: Duration of press in milliseconds (note: HarmonyOS longClick may not support duration).
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after long press. If None, uses configured default.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        duration_ms: 长按持续时间（毫秒，注意：HarmonyOS 的 longClick 可能不支持时长）。
+        device_id: 可选的 HDC 设备 ID。
+        delay: 长按后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_long_press_delay
 
     hdc_prefix = _get_hdc_prefix(device_id)
 
-    # HarmonyOS uses uitest uiInput longClick
-    # Note: longClick may have a fixed duration, duration_ms parameter might not be supported
+    # HarmonyOS 使用 uitest uiInput longClick
+    # 注意：longClick 可能为固定时长，duration_ms 参数可能不被支持
     _run_hdc_command(
         hdc_prefix + ["shell", "uitest", "uiInput", "longClick", str(x), str(y)],
         capture_output=True,
@@ -168,16 +168,16 @@ def swipe(
     delay: float | None = None,
 ) -> None:
     """
-    Swipe from start to end coordinates.
+    从起点滑动到终点。
 
-    Args:
-        start_x: Starting X coordinate.
-        start_y: Starting Y coordinate.
-        end_x: Ending X coordinate.
-        end_y: Ending Y coordinate.
-        duration_ms: Duration of swipe in milliseconds (auto-calculated if None).
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after swipe. If None, uses configured default.
+    参数:
+        start_x: 起点 X 坐标。
+        start_y: 起点 Y 坐标。
+        end_x: 终点 X 坐标。
+        end_y: 终点 Y 坐标。
+        duration_ms: 滑动持续时间（毫秒，None 时自动计算）。
+        device_id: 可选的 HDC 设备 ID。
+        delay: 滑动后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_swipe_delay
@@ -185,13 +185,13 @@ def swipe(
     hdc_prefix = _get_hdc_prefix(device_id)
 
     if duration_ms is None:
-        # Calculate duration based on distance
+        # 根据距离计算持续时间
         dist_sq = (start_x - end_x) ** 2 + (start_y - end_y) ** 2
         duration_ms = int(dist_sq / 1000)
-        duration_ms = max(500, min(duration_ms, 1000))  # Clamp between 500-1000ms
+        duration_ms = max(500, min(duration_ms, 1000))  # 限制在 500-1000ms
 
-    # HarmonyOS uses uitest uiInput swipe
-    # Format: swipe startX startY endX endY duration
+    # HarmonyOS 使用 uitest uiInput swipe
+    # 格式: swipe startX startY endX endY duration
     _run_hdc_command(
         hdc_prefix
         + [
@@ -212,18 +212,18 @@ def swipe(
 
 def back(device_id: str | None = None, delay: float | None = None) -> None:
     """
-    Press the back button.
+    按下返回键。
 
-    Args:
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after pressing back. If None, uses configured default.
+    参数:
+        device_id: 可选的 HDC 设备 ID。
+        delay: 返回后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_back_delay
 
     hdc_prefix = _get_hdc_prefix(device_id)
 
-    # HarmonyOS uses uitest uiInput keyEvent Back
+    # HarmonyOS 使用 uitest uiInput keyEvent Back
     _run_hdc_command(
         hdc_prefix + ["shell", "uitest", "uiInput", "keyEvent", "Back"],
         capture_output=True
@@ -233,18 +233,18 @@ def back(device_id: str | None = None, delay: float | None = None) -> None:
 
 def home(device_id: str | None = None, delay: float | None = None) -> None:
     """
-    Press the home button.
+    按下 Home 键。
 
-    Args:
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after pressing home. If None, uses configured default.
+    参数:
+        device_id: 可选的 HDC 设备 ID。
+        delay: 按下后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_home_delay
 
     hdc_prefix = _get_hdc_prefix(device_id)
 
-    # HarmonyOS uses uitest uiInput keyEvent Home
+    # HarmonyOS 使用 uitest uiInput keyEvent Home
     _run_hdc_command(
         hdc_prefix + ["shell", "uitest", "uiInput", "keyEvent", "Home"],
         capture_output=True
@@ -256,15 +256,15 @@ def launch_app(
     app_name: str, device_id: str | None = None, delay: float | None = None
 ) -> bool:
     """
-    Launch an app by name.
+    根据应用名称启动应用。
 
-    Args:
-        app_name: The app name (must be in APP_PACKAGES).
-        device_id: Optional HDC device ID.
-        delay: Delay in seconds after launching. If None, uses configured default.
+    参数:
+        app_name: 应用名称（必须存在于 APP_PACKAGES）。
+        device_id: 可选的 HDC 设备 ID。
+        delay: 启动后的延迟（秒）。为 None 时使用默认配置。
 
-    Returns:
-        True if app was launched, False if app not found.
+    返回:
+        启动成功返回 True，未找到应用返回 False。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_launch_delay
@@ -277,12 +277,12 @@ def launch_app(
     hdc_prefix = _get_hdc_prefix(device_id)
     bundle = APP_PACKAGES[app_name]
 
-    # Get the ability name for this bundle
-    # Default to "EntryAbility" if not specified in APP_ABILITIES
+    # 获取该 bundle 对应的 Ability 名称
+    # 若 APP_ABILITIES 未指定，则默认使用 "EntryAbility"
     ability = APP_ABILITIES.get(bundle, "EntryAbility")
 
-    # HarmonyOS uses 'aa start' command to launch apps
-    # Format: aa start -b {bundle} -a {ability}
+    # HarmonyOS 使用 'aa start' 命令启动应用
+    # 格式: aa start -b {bundle} -a {ability}
     _run_hdc_command(
         hdc_prefix
         + [
@@ -301,7 +301,7 @@ def launch_app(
 
 
 def _get_hdc_prefix(device_id: str | None) -> list:
-    """Get HDC command prefix with optional device specifier."""
+    """获取 HDC 命令前缀（可选设备参数）。"""
     if device_id:
         return ["hdc", "-t", device_id]
     return ["hdc"]

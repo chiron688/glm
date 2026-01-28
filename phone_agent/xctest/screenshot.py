@@ -1,4 +1,4 @@
-"""Screenshot utilities for capturing iOS device screen."""
+"""用于捕获 iOS 设备屏幕的截图工具。"""
 
 import base64
 import os
@@ -13,7 +13,7 @@ from PIL import Image
 
 @dataclass
 class Screenshot:
-    """Represents a captured screenshot."""
+    """表示一次捕获的截图。"""
 
     base64_data: str
     width: int
@@ -28,32 +28,32 @@ def get_screenshot(
     timeout: int = 10,
 ) -> Screenshot:
     """
-    Capture a screenshot from the connected iOS device.
+    从连接的 iOS 设备获取截图。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        device_id: Optional device UDID (for idevicescreenshot fallback).
-        timeout: Timeout in seconds for screenshot operations.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        device_id: 可选的设备 UDID（用于 idevicescreenshot 兜底）。
+        timeout: 截图操作的超时时间（秒）。
 
-    Returns:
-        Screenshot object containing base64 data and dimensions.
+    返回:
+        包含 base64 数据和尺寸的 Screenshot 对象。
 
-    Note:
-        Tries WebDriverAgent first, falls back to idevicescreenshot if available.
-        If both fail, returns a black fallback image.
+    说明:
+        优先使用 WebDriverAgent，若不可用则回退到 idevicescreenshot。
+        若都失败，则返回黑色占位图。
     """
-    # Try WebDriverAgent first (preferred method)
+    # 先尝试 WebDriverAgent（首选方式）
     screenshot = _get_screenshot_wda(wda_url, session_id, timeout)
     if screenshot:
         return screenshot
 
-    # Fallback to idevicescreenshot
+    # 回退到 idevicescreenshot
     screenshot = _get_screenshot_idevice(device_id, timeout)
     if screenshot:
         return screenshot
 
-    # Return fallback black image
+    # 返回黑色占位图
     return _create_fallback_screenshot(is_sensitive=False)
 
 
@@ -61,15 +61,15 @@ def _get_screenshot_wda(
     wda_url: str, session_id: str | None, timeout: int
 ) -> Screenshot | None:
     """
-    Capture screenshot using WebDriverAgent.
+    使用 WebDriverAgent 捕获截图。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        timeout: Timeout in seconds.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        timeout: 超时时间（秒）。
 
-    Returns:
-        Screenshot object or None if failed.
+    返回:
+        成功时返回 Screenshot 对象，失败时返回 None。
     """
     try:
         import requests
@@ -83,7 +83,7 @@ def _get_screenshot_wda(
             base64_data = data.get("value", "")
 
             if base64_data:
-                # Decode to get dimensions
+                # 解码以获取尺寸
                 img_data = base64.b64decode(base64_data)
                 img = Image.open(BytesIO(img_data))
                 width, height = img.size
@@ -107,14 +107,14 @@ def _get_screenshot_idevice(
     device_id: str | None, timeout: int
 ) -> Screenshot | None:
     """
-    Capture screenshot using idevicescreenshot (libimobiledevice).
+    使用 idevicescreenshot（libimobiledevice）捕获截图。
 
-    Args:
-        device_id: Optional device UDID.
-        timeout: Timeout in seconds.
+    参数:
+        device_id: 可选的设备 UDID。
+        timeout: 超时时间（秒）。
 
-    Returns:
-        Screenshot object or None if failed.
+    返回:
+        成功时返回 Screenshot 对象，失败时返回 None。
     """
     try:
         temp_path = os.path.join(
@@ -131,7 +131,7 @@ def _get_screenshot_idevice(
         )
 
         if result.returncode == 0 and os.path.exists(temp_path):
-            # Read and encode image
+            # 读取并编码图片
             img = Image.open(temp_path)
             width, height = img.size
 
@@ -139,7 +139,7 @@ def _get_screenshot_idevice(
             img.save(buffered, format="PNG")
             base64_data = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-            # Cleanup
+            # 清理临时文件
             os.remove(temp_path)
 
             return Screenshot(
@@ -158,15 +158,15 @@ def _get_screenshot_idevice(
 
 def _create_fallback_screenshot(is_sensitive: bool) -> Screenshot:
     """
-    Create a black fallback image when screenshot fails.
+    截图失败时创建黑色占位图。
 
-    Args:
-        is_sensitive: Whether the failure was due to sensitive content.
+    参数:
+        is_sensitive: 是否因敏感内容导致失败。
 
-    Returns:
-        Screenshot object with black image.
+    返回:
+        带黑色图片的 Screenshot 对象。
     """
-    # Default iPhone screen size (iPhone 14 Pro)
+    # 默认的 iPhone 屏幕尺寸（iPhone 14 Pro）
     default_width, default_height = 1179, 2556
 
     black_img = Image.new("RGB", (default_width, default_height), color="black")
@@ -187,14 +187,14 @@ def save_screenshot(
     file_path: str,
 ) -> bool:
     """
-    Save a screenshot to a file.
+    将截图保存到文件。
 
-    Args:
-        screenshot: Screenshot object.
-        file_path: Path to save the screenshot.
+    参数:
+        screenshot: Screenshot 对象。
+        file_path: 保存路径。
 
-    Returns:
-        True if successful, False otherwise.
+    返回:
+        成功返回 True，失败返回 False。
     """
     try:
         img_data = base64.b64decode(screenshot.base64_data)
@@ -212,15 +212,15 @@ def get_screenshot_png(
     device_id: str | None = None,
 ) -> bytes | None:
     """
-    Get screenshot as PNG bytes.
+    获取 PNG 格式的截图字节数据。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        device_id: Optional device UDID.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        device_id: 可选的设备 UDID。
 
-    Returns:
-        PNG bytes or None if failed.
+    返回:
+        成功返回 PNG 字节数据，失败返回 None。
     """
     screenshot = get_screenshot(wda_url, session_id, device_id)
 

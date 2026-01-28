@@ -1,11 +1,11 @@
-"""App name to iOS bundle ID mapping for supported applications.
+"""支持应用的名称到 iOS bundle ID 的映射。
 
-Based on iOS app bundle ID conventions and common iOS applications.
-Bundle IDs are in the format: com.company.appName
+基于 iOS 应用 bundle ID 约定和常见 iOS 应用。
+bundle ID 格式: com.company.appName
 """
 
 APP_PACKAGES_IOS: dict[str, str] = {
-    # Tencent Apps (腾讯系)
+    # 腾讯系应用
     "微信": "com.tencent.xin",
     "企业微信": "com.tencent.ww",
     "微信读书": "com.tencent.weread",
@@ -28,7 +28,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "腾讯地图": "com.tencent.sosomap",
     "小鹅拼拼": "com.tencent.dwdcoco",
     "全民k歌": "com.tencent.QQKSong",
-    # Alibaba Apps (阿里系)
+    # 阿里系应用
     "支付宝": "com.alipay.iphoneclient",
     "钉钉": "com.laiwang.DingTalk",
     "闲鱼": "com.taobao.fleamarket",
@@ -46,7 +46,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "优酷": "com.youku.YouKu",
     "菜鸟裹裹": "com.cainiao.cnwireless",
     "土豆视频": "com.tudou.tudouiphone",
-    # ByteDance Apps (字节系)
+    # 字节系应用
     "抖音": "com.ss.iphone.ugc.Aweme",
     "抖音极速版": "com.ss.iphone.ugc.aweme.lite",
     "抖音火山版": "com.ss.iphone.ugc.Live",
@@ -55,7 +55,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "今日头条": "com.ss.iphone.article.News",
     "西瓜视频": "com.ss.iphone.article.Video",
     "皮皮虾": "com.bd.iphone.super",
-    # Meituan Apps (美团系)
+    # 美团系应用
     "美团": "com.meituan.imeituan",
     "美团外卖": "com.meituan.itakeaway",
     "大众点评": "com.dianping.dpscope",
@@ -66,10 +66,10 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "美团拍店": "com.meituan.pai",
     "美团众包": "com.meituan.banma.crowdsource",
     "美团买菜": "com.baobaoaichi.imaicai",
-    # JD Apps (京东系)
+    # 京东系应用
     "京东": "com.360buy.jdmobile",
     "京东读书": "com.jd.reader",
-    # NetEase Apps (网易系)
+    # 网易系应用
     "网易新闻": "com.netease.news",
     "网易云音乐": "com.netease.cloudmusic",
     "网易邮箱大师": "com.netease.macmail",
@@ -77,7 +77,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "网易公开课": "com.netease.videoHD",
     "网易有道词典": "youdaoPro",
     "有道云笔记": "com.youdao.note.YoudaoNoteMac",
-    # Baidu Apps (百度系)
+    # 百度系应用
     "百度": "com.baidu.BaiduMobile",
     "百度网盘": "com.baidu.netdisk",
     "百度贴吧": "com.baidu.tieba",
@@ -87,10 +87,10 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "百度文库": "com.baidu.Wenku",
     "百度视频": "com.baidu.videoiphone",
     "百度输入法": "com.baidu.inputMethod",
-    # Kuaishou Apps (快手系)
+    # 快手系应用
     "快手": "com.jiangjia.gif",
     "快手极速版": "com.kuaishou.nebula",
-    # Other Popular Apps
+    # 其他热门应用
     "哔哩哔哩": "tv.danmaku.bilianime",
     "芒果TV": "com.hunantv.imgotv",
     "苏宁易购": "SuningEMall",
@@ -140,7 +140,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "名片全能王": "com.intsig.camcard.lite",
     "中国银行": "com.boc.BOCMBCI",
     "58同城": "com.taofang.iphone",
-    # International Apps
+    # 国际应用
     "Google Chrome": "com.google.chrome.ios",
     "Gmail": "com.google.Gmail",
     "Facebook": "com.facebook.Facebook",
@@ -157,7 +157,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "Netflix": "com.netflix.Netflix",
     "Twitter": "com.atebits.Tweetie2",
     "WhatsApp": "net.whatsapp.WhatsApp",
-    # Apple Native Apps (Apple 原生应用)
+    # Apple 原生应用
     "Safari": "com.apple.mobilesafari",
     "App Store": "com.apple.AppStore",
     "设置": "com.apple.Preferences",
@@ -203,26 +203,26 @@ APP_PACKAGES_IOS: dict[str, str] = {
 
 def get_bundle_id(app_name: str) -> str | None:
     """
-    Get the iOS bundle ID for an app.
+    获取应用的 iOS bundle ID。
 
-    Args:
-        app_name: The display name of the app.
+    参数:
+        app_name: 应用的显示名称。
 
-    Returns:
-        The iOS bundle ID, or None if not found.
+    返回:
+        iOS bundle ID，未找到则返回 None。
     """
     return APP_PACKAGES_IOS.get(app_name)
 
 
 def get_app_name(bundle_id: str) -> str | None:
     """
-    Get the app name from an iOS bundle ID.
+    根据 iOS bundle ID 获取应用名称。
 
-    Args:
-        bundle_id: The iOS bundle ID.
+    参数:
+        bundle_id: iOS bundle ID。
 
-    Returns:
-        The display name of the app, or None if not found.
+    返回:
+        应用显示名称，未找到则返回 None。
     """
     for name, bid in APP_PACKAGES_IOS.items():
         if bid == bundle_id:
@@ -232,29 +232,28 @@ def get_app_name(bundle_id: str) -> str | None:
 
 def list_supported_apps() -> list[str]:
     """
-    Get a list of all supported iOS app names.
+    获取所有支持的 iOS 应用名称列表。
 
-    Returns:
-        List of app names.
+    返回:
+        应用名称列表。
     """
     return list(APP_PACKAGES_IOS.keys())
 
 
 def check_app_installed(app_name: str, wda_url: str = "http://localhost:8100") -> bool:
     """
-    Check if an app is installed on the iOS device.
+    检查应用是否安装在 iOS 设备上。
 
-    Args:
-        app_name: The display name of the app.
-        wda_url: WebDriverAgent URL.
+    参数:
+        app_name: 应用的显示名称。
+        wda_url: WebDriverAgent 地址。
 
-    Returns:
-        True if app is installed, False otherwise.
+    返回:
+        已安装返回 True，否则返回 False。
 
-    Note:
-        This uses the iTunes API to get app information. For actual
-        installation check on device, you would need to use WDA's
-        app listing capabilities or URL scheme checking.
+    说明:
+        这里使用 iTunes API 获取应用信息。若需在设备上进行实际安装检查，
+        需要使用 WDA 的应用列表能力或 URL Scheme 检查。
     """
     bundle_id = get_bundle_id(app_name)
     if not bundle_id:
@@ -263,7 +262,7 @@ def check_app_installed(app_name: str, wda_url: str = "http://localhost:8100") -
     try:
         import requests
 
-        # Query iTunes API for app info
+        # 通过 iTunes API 查询应用信息
         url = f"https://itunes.apple.com/lookup?bundleId={bundle_id}"
         response = requests.get(url, timeout=10)
 
@@ -281,13 +280,13 @@ def check_app_installed(app_name: str, wda_url: str = "http://localhost:8100") -
 
 def get_app_info_from_itunes(bundle_id: str) -> dict | None:
     """
-    Get app information from iTunes API using bundle ID.
+    使用 bundle ID 从 iTunes API 获取应用信息。
 
-    Args:
-        bundle_id: The iOS bundle ID.
+    参数:
+        bundle_id: iOS bundle ID。
 
-    Returns:
-        Dictionary with app info (name, version, etc.) or None if not found.
+    返回:
+        包含应用信息（名称、版本等）的字典，未找到则返回 None。
     """
     try:
         import requests
@@ -311,13 +310,13 @@ def get_app_info_from_itunes(bundle_id: str) -> dict | None:
 
 def get_app_info_by_id(app_store_id: str) -> dict | None:
     """
-    Get app information from iTunes API using App Store ID.
+    使用 App Store ID 从 iTunes API 获取应用信息。
 
-    Args:
-        app_store_id: The numeric App Store ID (e.g., "414478124" for WeChat).
+    参数:
+        app_store_id: App Store 数字 ID（例如微信为 "414478124"）。
 
-    Returns:
-        Dictionary with app info or None if not found.
+    返回:
+        包含应用信息的字典，未找到则返回 None。
     """
     try:
         import requests

@@ -1,36 +1,36 @@
-"""App name to package name mapping for supported applications."""
+"""支持应用的名称到包名映射。"""
 
 APP_PACKAGES: dict[str, str] = {
-    # Social & Messaging
+    # 社交与消息
     "微信": "com.tencent.mm",
     "QQ": "com.tencent.mobileqq",
     "微博": "com.sina.weibo",
-    # E-commerce
+    # 电商
     "淘宝": "com.taobao.taobao",
     "京东": "com.jingdong.app.mall",
     "拼多多": "com.xunmeng.pinduoduo",
     "淘宝闪购": "com.taobao.taobao",
     "京东秒送": "com.jingdong.app.mall",
-    # Lifestyle & Social
+    # 生活方式与社交
     "小红书": "com.xingin.xhs",
     "豆瓣": "com.douban.frodo",
     "知乎": "com.zhihu.android",
-    # Maps & Navigation
+    # 地图与导航
     "高德地图": "com.autonavi.minimap",
     "百度地图": "com.baidu.BaiduMap",
-    # Food & Services
+    # 餐饮与服务
     "美团": "com.sankuai.meituan",
     "大众点评": "com.dianping.v1",
     "饿了么": "me.ele",
     "肯德基": "com.yek.android.kfc.activitys",
-    # Travel
+    # 出行
     "携程": "ctrip.android.view",
     "铁路12306": "com.MobileTicket",
     "12306": "com.MobileTicket",
     "去哪儿": "com.Qunar",
     "去哪儿旅行": "com.Qunar",
     "滴滴出行": "com.sdu.didi.psnger",
-    # Video & Entertainment
+    # 视频与娱乐
     "bilibili": "tv.danmaku.bili",
     "抖音": "com.ss.android.ugc.aweme",
     "快手": "com.smile.gifmaker",
@@ -39,32 +39,32 @@ APP_PACKAGES: dict[str, str] = {
     "优酷视频": "com.youku.phone",
     "芒果TV": "com.hunantv.imgo.activity",
     "红果短剧": "com.phoenix.read",
-    # Music & Audio
+    # 音乐与音频
     "网易云音乐": "com.netease.cloudmusic",
     "QQ音乐": "com.tencent.qqmusic",
     "汽水音乐": "com.luna.music",
     "喜马拉雅": "com.ximalaya.ting.android",
-    # Reading
+    # 阅读
     "番茄小说": "com.dragon.read",
     "番茄免费小说": "com.dragon.read",
     "七猫免费小说": "com.kmxs.reader",
-    # Productivity
+    # 效率办公
     "飞书": "com.ss.android.lark",
     "QQ邮箱": "com.tencent.androidqqmail",
-    # AI & Tools
+    # AI 与工具
     "豆包": "com.larus.nova",
-    # Health & Fitness
+    # 健康与健身
     "keep": "com.gotokeep.keep",
     "美柚": "com.lingan.seeyou",
-    # News & Information
+    # 新闻与资讯
     "腾讯新闻": "com.tencent.news",
     "今日头条": "com.ss.android.article.news",
-    # Real Estate
+    # 房产
     "贝壳找房": "com.lianjia.beike",
     "安居客": "com.anjuke.android.app",
-    # Finance
+    # 金融
     "同花顺": "com.hexin.plat.android",
-    # Games
+    # 游戏
     "星穹铁道": "com.miHoYo.hkrpg",
     "崩坏：星穹铁道": "com.miHoYo.hkrpg",
     "恋与深空": "com.papegames.lysk.cn",
@@ -190,26 +190,26 @@ APP_PACKAGES: dict[str, str] = {
 
 def get_package_name(app_name: str) -> str | None:
     """
-    Get the package name for an app.
+    获取应用的包名。
 
-    Args:
-        app_name: The display name of the app.
+    参数:
+        app_name: 应用的显示名称。
 
-    Returns:
-        The Android package name, or None if not found.
+    返回:
+        Android 包名，未找到则返回 None。
     """
     return APP_PACKAGES.get(app_name)
 
 
 def get_app_name(package_name: str) -> str | None:
     """
-    Get the app name from a package name.
+    根据包名获取应用名称。
 
-    Args:
-        package_name: The Android package name.
+    参数:
+        package_name: Android 包名。
 
-    Returns:
-        The display name of the app, or None if not found.
+    返回:
+        应用显示名称，未找到则返回 None。
     """
     for name, package in APP_PACKAGES.items():
         if package == package_name:
@@ -219,9 +219,9 @@ def get_app_name(package_name: str) -> str | None:
 
 def list_supported_apps() -> list[str]:
     """
-    Get a list of all supported app names.
+    获取所有支持的应用名称列表。
 
-    Returns:
-        List of app names.
+    返回:
+        应用名称列表。
     """
     return list(APP_PACKAGES.keys())

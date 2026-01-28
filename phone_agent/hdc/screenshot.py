@@ -1,4 +1,4 @@
-"""Screenshot utilities for capturing HarmonyOS device screen."""
+"""用于捕获 HarmonyOS 设备屏幕的截图工具。"""
 
 import base64
 import os
@@ -15,7 +15,7 @@ from phone_agent.hdc.connection import _run_hdc_command
 
 @dataclass
 class Screenshot:
-    """Represents a captured screenshot."""
+    """表示一次捕获的截图。"""
 
     base64_data: str
     width: int
@@ -25,28 +25,28 @@ class Screenshot:
 
 def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screenshot:
     """
-    Capture a screenshot from the connected HarmonyOS device.
+    从连接的 HarmonyOS 设备获取截图。
 
-    Args:
-        device_id: Optional HDC device ID for multi-device setups.
-        timeout: Timeout in seconds for screenshot operations.
+    参数:
+        device_id: 可选的 HDC 设备 ID（多设备场景）。
+        timeout: 截图操作的超时时间（秒）。
 
-    Returns:
-        Screenshot object containing base64 data and dimensions.
+    返回:
+        包含 base64 数据和尺寸的 Screenshot 对象。
 
-    Note:
-        If the screenshot fails (e.g., on sensitive screens like payment pages),
-        a black fallback image is returned with is_sensitive=True.
+    说明:
+        若截图失败（例如支付页面等敏感界面），
+        将返回黑色占位图，并设置 is_sensitive=True。
     """
     temp_path = os.path.join(tempfile.gettempdir(), f"screenshot_{uuid.uuid4()}.png")
     hdc_prefix = _get_hdc_prefix(device_id)
 
     try:
-        # Execute screenshot command
-        # HarmonyOS HDC only supports JPEG format
+        # 执行截图命令
+        # HarmonyOS HDC 仅支持 JPEG 格式
         remote_path = "/data/local/tmp/tmp_screenshot.jpeg"
 
-        # Try method 1: hdc shell screenshot (newer HarmonyOS versions)
+        # 方法 1：hdc shell screenshot（较新的 HarmonyOS 版本）
         result = _run_hdc_command(
             hdc_prefix + ["shell", "screenshot", remote_path],
             capture_output=True,
@@ -54,10 +54,10 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
             timeout=timeout,
         )
 
-        # Check for screenshot failure (sensitive screen)
+        # 检查截图是否失败（敏感界面）
         output = result.stdout + result.stderr
         if "fail" in output.lower() or "error" in output.lower() or "not found" in output.lower():
-            # Try method 2: snapshot_display (older versions or different devices)
+            # 方法 2：snapshot_display（旧版本或不同设备）
             result = _run_hdc_command(
                 hdc_prefix + ["shell", "snapshot_display", "-f", remote_path],
                 capture_output=True,
@@ -68,8 +68,8 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
             if "fail" in output.lower() or "error" in output.lower():
                 return _create_fallback_screenshot(is_sensitive=True)
 
-        # Pull screenshot to local temp path
-        # Note: remote file is JPEG, but PIL can open it regardless of local extension
+        # 将截图拉取到本地临时路径
+        # 注意：远端文件为 JPEG，但 PIL 可按内容识别格式
         _run_hdc_command(
             hdc_prefix + ["file", "recv", remote_path, temp_path],
             capture_output=True,
@@ -80,8 +80,8 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
         if not os.path.exists(temp_path):
             return _create_fallback_screenshot(is_sensitive=False)
 
-        # Read JPEG image and convert to PNG for model inference
-        # PIL automatically detects the image format from file content
+        # 读取 JPEG 并转换为 PNG，供模型推理使用
+        # PIL 会根据文件内容自动识别格式
         img = Image.open(temp_path)
         width, height = img.size
 
@@ -89,7 +89,7 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
         img.save(buffered, format="PNG")
         base64_data = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
-        # Cleanup
+        # 清理临时文件
         os.remove(temp_path)
 
         return Screenshot(
@@ -102,14 +102,14 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
 
 
 def _get_hdc_prefix(device_id: str | None) -> list:
-    """Get HDC command prefix with optional device specifier."""
+    """获取 HDC 命令前缀（可选设备参数）。"""
     if device_id:
         return ["hdc", "-t", device_id]
     return ["hdc"]
 
 
 def _create_fallback_screenshot(is_sensitive: bool) -> Screenshot:
-    """Create a black fallback image when screenshot fails."""
+    """截图失败时创建黑色占位图。"""
     default_width, default_height = 1080, 2400
 
     black_img = Image.new("RGB", (default_width, default_height), color="black")

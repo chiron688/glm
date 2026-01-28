@@ -1,4 +1,4 @@
-"""Action handler for iOS automation using WebDriverAgent."""
+"""使用 WebDriverAgent 的 iOS 自动化动作处理器。"""
 
 import time
 from dataclasses import dataclass
@@ -18,7 +18,7 @@ from phone_agent.xctest.input import clear_text, hide_keyboard, type_text
 
 @dataclass
 class ActionResult:
-    """Result of an action execution."""
+    """动作执行结果。"""
 
     success: bool
     should_finish: bool
@@ -28,14 +28,14 @@ class ActionResult:
 
 class IOSActionHandler:
     """
-    Handles execution of actions from AI model output for iOS devices.
+    处理 iOS 设备上来自 AI 模型输出的动作执行。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        confirmation_callback: Optional callback for sensitive action confirmation.
-            Should return True to proceed, False to cancel.
-        takeover_callback: Optional callback for takeover requests (login, captcha).
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        confirmation_callback: 可选的敏感操作确认回调。
+            返回 True 继续，False 取消。
+        takeover_callback: 可选的接管请求回调（登录、验证码等）。
     """
 
     def __init__(
@@ -54,15 +54,15 @@ class IOSActionHandler:
         self, action: dict[str, Any], screen_width: int, screen_height: int
     ) -> ActionResult:
         """
-        Execute an action from the AI model.
+        执行来自 AI 模型的动作。
 
-        Args:
-            action: The action dictionary from the model.
-            screen_width: Current screen width in pixels.
-            screen_height: Current screen height in pixels.
+        参数:
+            action: 模型输出的动作字典。
+            screen_width: 当前屏幕宽度（像素）。
+            screen_height: 当前屏幕高度（像素）。
 
-        Returns:
-            ActionResult indicating success and whether to finish.
+        返回:
+            ActionResult，表示是否成功以及是否结束。
         """
         action_type = action.get("_metadata")
 
@@ -96,7 +96,7 @@ class IOSActionHandler:
             )
 
     def _get_handler(self, action_name: str) -> Callable | None:
-        """Get the handler method for an action."""
+        """获取指定动作的处理方法。"""
         handlers = {
             "Launch": self._handle_launch,
             "Tap": self._handle_tap,
@@ -118,13 +118,13 @@ class IOSActionHandler:
     def _convert_relative_to_absolute(
         self, element: list[int], screen_width: int, screen_height: int
     ) -> tuple[int, int]:
-        """Convert relative coordinates (0-1000) to absolute pixels."""
+        """将相对坐标（0-1000）转换为绝对像素。"""
         x = int(element[0] / 1000 * screen_width)
         y = int(element[1] / 1000 * screen_height)
         return x, y
 
     def _handle_launch(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle app launch action."""
+        """处理应用启动动作。"""
         app_name = action.get("app")
         if not app_name:
             return ActionResult(False, False, "No app name specified")
@@ -137,7 +137,7 @@ class IOSActionHandler:
         return ActionResult(False, False, f"App not found: {app_name}")
 
     def _handle_tap(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle tap action."""
+        """处理点击动作。"""
         element = action.get("element")
         if not element:
             return ActionResult(False, False, "No element coordinates")
@@ -146,7 +146,7 @@ class IOSActionHandler:
 
         print(f"Physically tap on ({x}, {y})")
 
-        # Check for sensitive operation
+        # 检查是否为敏感操作
         if "message" in action:
             if not self.confirmation_callback(action["message"]):
                 return ActionResult(
@@ -159,24 +159,24 @@ class IOSActionHandler:
         return ActionResult(True, False)
 
     def _handle_type(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle text input action."""
+        """处理文本输入动作。"""
         text = action.get("text", "")
 
-        # Clear existing text and type new text
+        # 清空已有文本并输入新文本
         clear_text(wda_url=self.wda_url, session_id=self.session_id)
         time.sleep(0.5)
 
         type_text(text, wda_url=self.wda_url, session_id=self.session_id)
         time.sleep(0.5)
 
-        # Hide keyboard after typing
+        # 输入完成后隐藏键盘
         hide_keyboard(wda_url=self.wda_url, session_id=self.session_id)
         time.sleep(0.5)
 
         return ActionResult(True, False)
 
     def _handle_swipe(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle swipe action."""
+        """处理滑动动作。"""
         start = action.get("start")
         end = action.get("end")
 
@@ -199,17 +199,17 @@ class IOSActionHandler:
         return ActionResult(True, False)
 
     def _handle_back(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle back gesture (swipe from left edge)."""
+        """处理返回手势（从左边缘滑动）。"""
         back(wda_url=self.wda_url, session_id=self.session_id)
         return ActionResult(True, False)
 
     def _handle_home(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle home button action."""
+        """处理 Home 按钮动作。"""
         home(wda_url=self.wda_url, session_id=self.session_id)
         return ActionResult(True, False)
 
     def _handle_double_tap(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle double tap action."""
+        """处理双击动作。"""
         element = action.get("element")
         if not element:
             return ActionResult(False, False, "No element coordinates")
@@ -219,7 +219,7 @@ class IOSActionHandler:
         return ActionResult(True, False)
 
     def _handle_long_press(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle long press action."""
+        """处理长按动作。"""
         element = action.get("element")
         if not element:
             return ActionResult(False, False, "No element coordinates")
@@ -235,7 +235,7 @@ class IOSActionHandler:
         return ActionResult(True, False)
 
     def _handle_wait(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle wait action."""
+        """处理等待动作。"""
         duration_str = action.get("duration", "1 seconds")
         try:
             duration = float(duration_str.replace("seconds", "").strip())
@@ -246,35 +246,35 @@ class IOSActionHandler:
         return ActionResult(True, False)
 
     def _handle_takeover(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle takeover request (login, captcha, etc.)."""
+        """处理接管请求（登录、验证码等）。"""
         message = action.get("message", "User intervention required")
         self.takeover_callback(message)
         return ActionResult(True, False)
 
     def _handle_note(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle note action (placeholder for content recording)."""
-        # This action is typically used for recording page content
-        # Implementation depends on specific requirements
+        """处理 Note 动作（内容记录的占位实现）。"""
+        # 该动作通常用于记录页面内容
+        # 具体实现取决于实际需求
         return ActionResult(True, False)
 
     def _handle_call_api(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle API call action (placeholder for summarization)."""
-        # This action is typically used for content summarization
-        # Implementation depends on specific requirements
+        """处理 API 调用动作（摘要的占位实现）。"""
+        # 该动作通常用于内容摘要
+        # 具体实现取决于实际需求
         return ActionResult(True, False)
 
     def _handle_interact(self, action: dict, width: int, height: int) -> ActionResult:
-        """Handle interaction request (user choice needed)."""
-        # This action signals that user input is needed
+        """处理交互请求（需要用户选择）。"""
+        # 该动作表示需要用户输入
         return ActionResult(True, False, message="User interaction required")
 
     @staticmethod
     def _default_confirmation(message: str) -> bool:
-        """Default confirmation callback using console input."""
+        """使用控制台输入的默认确认回调。"""
         response = input(f"Sensitive operation: {message}\nConfirm? (Y/N): ")
         return response.upper() == "Y"
 
     @staticmethod
     def _default_takeover(message: str) -> None:
-        """Default takeover callback using console input."""
+        """使用控制台输入的默认接管回调。"""
         input(f"{message}\nPress Enter after completing manual operation...")

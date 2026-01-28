@@ -1,4 +1,4 @@
-"""iOS PhoneAgent class for orchestrating iOS phone automation."""
+"""用于编排 iOS 手机自动化的 PhoneAgent 类。"""
 
 import json
 import traceback
@@ -15,12 +15,12 @@ from phone_agent.xctest import XCTestConnection, get_current_app, get_screenshot
 
 @dataclass
 class IOSAgentConfig:
-    """Configuration for the iOS PhoneAgent."""
+    """iOS PhoneAgent 的配置。"""
 
     max_steps: int = 100
     wda_url: str = "http://localhost:8100"
     session_id: str | None = None
-    device_id: str | None = None  # iOS device UDID
+    device_id: str | None = None  # iOS 设备 UDID
     lang: str = "cn"
     system_prompt: str | None = None
     verbose: bool = True
@@ -32,7 +32,7 @@ class IOSAgentConfig:
 
 @dataclass
 class StepResult:
-    """Result of a single agent step."""
+    """单步执行结果。"""
 
     success: bool
     finished: bool
@@ -43,18 +43,17 @@ class StepResult:
 
 class IOSPhoneAgent:
     """
-    AI-powered agent for automating iOS phone interactions.
+    用于自动化 iOS 手机交互的 AI Agent。
 
-    The agent uses a vision-language model to understand screen content
-    and decide on actions to complete user tasks via WebDriverAgent.
+    Agent 使用视觉语言模型理解屏幕内容，并通过 WebDriverAgent 决定动作完成任务。
 
-    Args:
-        model_config: Configuration for the AI model.
-        agent_config: Configuration for the iOS agent behavior.
-        confirmation_callback: Optional callback for sensitive action confirmation.
-        takeover_callback: Optional callback for takeover requests.
+    参数:
+        model_config: AI 模型配置。
+        agent_config: iOS Agent 行为配置。
+        confirmation_callback: 可选的敏感操作确认回调。
+        takeover_callback: 可选的接管请求回调。
 
-    Example:
+    示例:
         >>> from phone_agent.agent_ios import IOSPhoneAgent, IOSAgentConfig
         >>> from phone_agent.model import ModelConfig
         >>>
@@ -76,10 +75,10 @@ class IOSPhoneAgent:
 
         self.model_client = ModelClient(self.model_config)
 
-        # Initialize WDA connection and create session if needed
+        # 初始化 WDA 连接，并在需要时创建会话
         self.wda_connection = XCTestConnection(wda_url=self.agent_config.wda_url)
 
-        # Auto-create session if not provided
+        # 未提供会话时自动创建
         if self.agent_config.session_id is None:
             success, session_id = self.wda_connection.start_wda_session()
             if success and session_id != "session_started":
@@ -101,24 +100,24 @@ class IOSPhoneAgent:
 
     def run(self, task: str) -> str:
         """
-        Run the agent to complete a task.
+        运行 Agent 以完成任务。
 
-        Args:
-            task: Natural language description of the task.
+        参数:
+            task: 任务的自然语言描述。
 
-        Returns:
-            Final message from the agent.
+        返回:
+            Agent 的最终消息。
         """
         self._context = []
         self._step_count = 0
 
-        # First step with user prompt
+        # 首次步骤包含用户提示
         result = self._execute_step(task, is_first=True)
 
         if result.finished:
             return result.message or "Task completed"
 
-        # Continue until finished or max steps reached
+        # 继续执行直到完成或达到最大步数
         while self._step_count < self.agent_config.max_steps:
             result = self._execute_step(is_first=False)
 
@@ -129,15 +128,15 @@ class IOSPhoneAgent:
 
     def step(self, task: str | None = None) -> StepResult:
         """
-        Execute a single step of the agent.
+        执行 Agent 的单步。
 
-        Useful for manual control or debugging.
+        适用于手动控制或调试。
 
-        Args:
-            task: Task description (only needed for first step).
+        参数:
+            task: 任务描述（仅首步需要）。
 
-        Returns:
-            StepResult with step details.
+        返回:
+            包含步骤详情的 StepResult。
         """
         is_first = len(self._context) == 0
 
@@ -147,17 +146,17 @@ class IOSPhoneAgent:
         return self._execute_step(task, is_first)
 
     def reset(self) -> None:
-        """Reset the agent state for a new task."""
+        """为新任务重置 Agent 状态。"""
         self._context = []
         self._step_count = 0
 
     def _execute_step(
         self, user_prompt: str | None = None, is_first: bool = False
     ) -> StepResult:
-        """Execute a single step of the agent loop."""
+        """执行 Agent 循环中的单步。"""
         self._step_count += 1
 
-        # Capture current screen state
+        # 获取当前屏幕状态
         screenshot = get_screenshot(
             wda_url=self.agent_config.wda_url,
             session_id=self.agent_config.session_id,
@@ -167,7 +166,7 @@ class IOSPhoneAgent:
             wda_url=self.agent_config.wda_url, session_id=self.agent_config.session_id
         )
 
-        # Build messages
+        # 构建消息
         if is_first:
             self._context.append(
                 MessageBuilder.create_system_message(self.agent_config.system_prompt)
@@ -191,7 +190,7 @@ class IOSPhoneAgent:
                 )
             )
 
-        # Get model response
+        # 获取模型响应
         try:
             response = self.model_client.request(self._context)
         except Exception as e:
@@ -205,7 +204,7 @@ class IOSPhoneAgent:
                 message=f"Model error: {e}",
             )
 
-        # Parse action from response
+        # 解析响应中的动作
         try:
             action = parse_action(response.action)
         except ValueError:
@@ -214,7 +213,7 @@ class IOSPhoneAgent:
             action = finish(message=response.action)
 
         if self.agent_config.verbose:
-            # Print thinking process
+            # 输出思考过程
             msgs = get_messages(self.agent_config.lang)
             print("\n" + "=" * 50)
             print(f"💭 {msgs['thinking']}:")
@@ -225,10 +224,10 @@ class IOSPhoneAgent:
             print(json.dumps(action, ensure_ascii=False, indent=2))
             print("=" * 50 + "\n")
 
-        # Remove image from context to save space
+        # 移除上下文中的图片以节省空间
         self._context[-1] = MessageBuilder.remove_images_from_message(self._context[-1])
 
-        # Execute action
+        # 执行动作
         try:
             result = self.action_handler.execute(
                 action, screenshot.width, screenshot.height
@@ -240,14 +239,14 @@ class IOSPhoneAgent:
                 finish(message=str(e)), screenshot.width, screenshot.height
             )
 
-        # Add assistant response to context
+        # 将助手响应加入上下文
         self._context.append(
             MessageBuilder.create_assistant_message(
                 f"<think>{response.thinking}</think><answer>{response.action}</answer>"
             )
         )
 
-        # Check if finished
+        # 检查是否完成
         finished = action.get("_metadata") == "finish" or result.should_finish
 
         if finished and self.agent_config.verbose:
@@ -268,10 +267,10 @@ class IOSPhoneAgent:
 
     @property
     def context(self) -> list[dict[str, Any]]:
-        """Get the current conversation context."""
+        """获取当前对话上下文。"""
         return self._context.copy()
 
     @property
     def step_count(self) -> int:
-        """Get the current step count."""
+        """获取当前步骤计数。"""
         return self._step_count

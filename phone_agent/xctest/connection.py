@@ -1,4 +1,4 @@
-"""iOS device connection management via idevice tools and WebDriverAgent."""
+"""通过 idevice 工具与 WebDriverAgent 管理 iOS 设备连接。"""
 
 import subprocess
 import time
@@ -7,7 +7,7 @@ from enum import Enum
 
 
 class ConnectionType(Enum):
-    """Type of iOS connection."""
+    """iOS 连接类型。"""
 
     USB = "usb"
     NETWORK = "network"
@@ -15,9 +15,9 @@ class ConnectionType(Enum):
 
 @dataclass
 class DeviceInfo:
-    """Information about a connected iOS device."""
+    """连接的 iOS 设备信息。"""
 
-    device_id: str  # UDID
+    device_id: str  # 设备 UDID
     status: str
     connection_type: ConnectionType
     model: str | None = None
@@ -27,46 +27,46 @@ class DeviceInfo:
 
 class XCTestConnection:
     """
-    Manages connections to iOS devices via libimobiledevice and WebDriverAgent.
+    通过 libimobiledevice 与 WebDriverAgent 管理 iOS 设备连接。
 
-    Requires:
-        - libimobiledevice (idevice_id, ideviceinfo)
-        - WebDriverAgent running on the iOS device
-        - ios-deploy (optional, for app installation)
+    依赖:
+        - libimobiledevice（idevice_id, ideviceinfo）
+        - iOS 设备上运行的 WebDriverAgent
+        - ios-deploy（可选，用于应用安装）
 
-    Example:
+    示例:
         >>> conn = XCTestConnection()
-        >>> # List connected devices
+        >>> # 列出已连接的设备
         >>> devices = conn.list_devices()
-        >>> # Get device info
+        >>> # 获取设备信息
         >>> info = conn.get_device_info()
-        >>> # Check if WDA is running
+        >>> # 检查 WDA 是否运行
         >>> is_ready = conn.is_wda_ready()
     """
 
     def __init__(self, wda_url: str = "http://localhost:8100"):
         """
-        Initialize iOS connection manager.
+        初始化 iOS 连接管理器。
 
-        Args:
-            wda_url: WebDriverAgent URL (default: http://localhost:8100).
-                     For network devices, use http://<device-ip>:8100
+        参数:
+            wda_url: WebDriverAgent 地址（默认: http://localhost:8100）。
+                     网络设备使用 http://<device-ip>:8100
         """
         self.wda_url = wda_url.rstrip("/")
 
     def list_devices(self) -> list[DeviceInfo]:
         """
-        List all connected iOS devices.
+        列出所有已连接的 iOS 设备。
 
-        Returns:
-            List of DeviceInfo objects.
+        返回:
+            DeviceInfo 对象列表。
 
-        Note:
-            Requires libimobiledevice to be installed.
-            Install on macOS: brew install libimobiledevice
+        说明:
+            需要安装 libimobiledevice。
+            macOS 安装: brew install libimobiledevice
         """
         try:
-            # Get list of device UDIDs
+            # 获取设备 UDID 列表
             result = subprocess.run(
                 ["idevice_id", "-ln"],
                 capture_output=True,
@@ -80,14 +80,14 @@ class XCTestConnection:
                 if not udid:
                     continue
 
-                # Determine connection type (network devices have specific format)
+                # 判断连接类型（网络设备 UDID 有特定格式）
                 conn_type = (
                     ConnectionType.NETWORK
                     if "-" in udid and len(udid) > 40
                     else ConnectionType.USB
                 )
 
-                # Get detailed device info
+                # 获取设备详细信息
                 device_info = self._get_device_details(udid)
 
                 devices.append(
@@ -114,13 +114,13 @@ class XCTestConnection:
 
     def _get_device_details(self, udid: str) -> dict[str, str]:
         """
-        Get detailed information about a specific device.
+        获取指定设备的详细信息。
 
-        Args:
-            udid: Device UDID.
+        参数:
+            udid: 设备 UDID。
 
-        Returns:
-            Dictionary with device details.
+        返回:
+            设备详情字典。
         """
         try:
             result = subprocess.run(
@@ -151,13 +151,13 @@ class XCTestConnection:
 
     def get_device_info(self, device_id: str | None = None) -> DeviceInfo | None:
         """
-        Get detailed information about a device.
+        获取设备的详细信息。
 
-        Args:
-            device_id: Device UDID. If None, uses first available device.
+        参数:
+            device_id: 设备 UDID。为 None 时使用第一个可用设备。
 
-        Returns:
-            DeviceInfo or None if not found.
+        返回:
+            DeviceInfo 对象，未找到则返回 None。
         """
         devices = self.list_devices()
 
@@ -175,13 +175,13 @@ class XCTestConnection:
 
     def is_connected(self, device_id: str | None = None) -> bool:
         """
-        Check if a device is connected.
+        检查设备是否已连接。
 
-        Args:
-            device_id: Device UDID to check. If None, checks if any device is connected.
+        参数:
+            device_id: 要检查的设备 UDID。为 None 时检查是否有任意设备连接。
 
-        Returns:
-            True if connected, False otherwise.
+        返回:
+            已连接返回 True，否则返回 False。
         """
         devices = self.list_devices()
 
@@ -195,13 +195,13 @@ class XCTestConnection:
 
     def is_wda_ready(self, timeout: int = 2) -> bool:
         """
-        Check if WebDriverAgent is running and accessible.
+        检查 WebDriverAgent 是否运行且可访问。
 
-        Args:
-            timeout: Request timeout in seconds.
+        参数:
+            timeout: 请求超时时间（秒）。
 
-        Returns:
-            True if WDA is ready, False otherwise.
+        返回:
+            WDA 可用返回 True，否则返回 False。
         """
         try:
             import requests
@@ -220,10 +220,10 @@ class XCTestConnection:
 
     def start_wda_session(self) -> tuple[bool, str]:
         """
-        Start a new WebDriverAgent session.
+        启动新的 WebDriverAgent 会话。
 
-        Returns:
-            Tuple of (success, session_id or error_message).
+        返回:
+            (success, session_id 或 error_message) 的元组。
         """
         try:
             import requests
@@ -254,10 +254,10 @@ class XCTestConnection:
 
     def get_wda_status(self) -> dict | None:
         """
-        Get WebDriverAgent status information.
+        获取 WebDriverAgent 状态信息。
 
-        Returns:
-            Status dictionary or None if not available.
+        返回:
+            状态字典，若不可用则返回 None。
         """
         try:
             import requests
@@ -273,13 +273,13 @@ class XCTestConnection:
 
     def pair_device(self, device_id: str | None = None) -> tuple[bool, str]:
         """
-        Pair with an iOS device (required for some operations).
+        与 iOS 设备配对（部分操作需要）。
 
-        Args:
-            device_id: Device UDID. If None, uses first available device.
+        参数:
+            device_id: 设备 UDID。为 None 时使用第一个可用设备。
 
-        Returns:
-            Tuple of (success, message).
+        返回:
+            (success, message) 的元组。
         """
         try:
             cmd = ["idevicepair"]
@@ -306,13 +306,13 @@ class XCTestConnection:
 
     def get_device_name(self, device_id: str | None = None) -> str | None:
         """
-        Get the device name.
+        获取设备名称。
 
-        Args:
-            device_id: Device UDID. If None, uses first available device.
+        参数:
+            device_id: 设备 UDID。为 None 时使用第一个可用设备。
 
-        Returns:
-            Device name string or None if not found.
+        返回:
+            设备名称字符串，未找到则返回 None。
         """
         try:
             cmd = ["ideviceinfo"]
@@ -330,14 +330,14 @@ class XCTestConnection:
 
     def restart_wda(self) -> tuple[bool, str]:
         """
-        Restart WebDriverAgent (requires manual restart on device).
+        重启 WebDriverAgent（需要在设备上手动重启）。
 
-        Returns:
-            Tuple of (success, message).
+        返回:
+            (success, message) 的元组。
 
-        Note:
-            This method only checks if WDA needs restart.
-            Actual restart requires re-running WDA on the device via Xcode or other means.
+        说明:
+            该方法仅检查是否需要重启 WDA。
+            实际重启需要通过 Xcode 或其他方式在设备上重新运行 WDA。
         """
         if self.is_wda_ready():
             return True, "WDA is already running"
@@ -350,21 +350,21 @@ class XCTestConnection:
 
 def quick_connect(wda_url: str = "http://localhost:8100") -> tuple[bool, str]:
     """
-    Quick helper to check iOS device connection and WDA status.
+    快速检查 iOS 设备连接与 WDA 状态的辅助方法。
 
-    Args:
-        wda_url: WebDriverAgent URL.
+    参数:
+        wda_url: WebDriverAgent 地址。
 
-    Returns:
-        Tuple of (success, message).
+    返回:
+        (success, message) 的元组。
     """
     conn = XCTestConnection(wda_url=wda_url)
 
-    # Check if device is connected
+    # 检查是否有设备连接
     if not conn.is_connected():
         return False, "No iOS device connected"
 
-    # Check if WDA is ready
+    # 检查 WDA 是否就绪
     if not conn.is_wda_ready():
         return False, "WebDriverAgent is not running"
 
@@ -373,10 +373,10 @@ def quick_connect(wda_url: str = "http://localhost:8100") -> tuple[bool, str]:
 
 def list_devices() -> list[DeviceInfo]:
     """
-    Quick helper to list connected iOS devices.
+    快速列出已连接的 iOS 设备。
 
-    Returns:
-        List of DeviceInfo objects.
+    返回:
+        DeviceInfo 对象列表。
     """
     conn = XCTestConnection()
     return conn.list_devices()

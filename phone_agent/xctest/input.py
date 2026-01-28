@@ -1,25 +1,25 @@
-"""Input utilities for iOS device text input via WebDriverAgent."""
+"""通过 WebDriverAgent 进行 iOS 设备文本输入的工具。"""
 
 import time
 
 
 def _get_wda_session_url(wda_url: str, session_id: str | None, endpoint: str) -> str:
     """
-    Get the correct WDA URL for a session endpoint.
+    获取会话端点对应的正确 WDA URL。
 
-    Args:
-        wda_url: Base WDA URL.
-        session_id: Optional session ID.
-        endpoint: The endpoint path.
+    参数:
+        wda_url: WDA 基础地址。
+        session_id: 可选的会话 ID。
+        endpoint: 端点路径。
 
-    Returns:
-        Full URL for the endpoint.
+    返回:
+        端点的完整 URL。
     """
     base = wda_url.rstrip("/")
     if session_id:
         return f"{base}/session/{session_id}/{endpoint}"
     else:
-        # Try to use WDA endpoints without session when possible
+        # 尽量在无需 session 时使用 WDA 端点
         return f"{base}/{endpoint}"
 
 
@@ -30,24 +30,24 @@ def type_text(
     frequency: int = 60,
 ) -> None:
     """
-    Type text into the currently focused input field.
+    在当前焦点输入框中输入文本。
 
-    Args:
-        text: The text to type.
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        frequency: Typing frequency (keys per minute). Default is 60.
+    参数:
+        text: 要输入的文本。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        frequency: 输入频率（每分钟按键数），默认 60。
 
-    Note:
-        The input field must be focused before calling this function.
-        Use tap() to focus on the input field first.
+    说明:
+        调用前输入框必须已聚焦。
+        可先用 tap() 让输入框获得焦点。
     """
     try:
         import requests
 
         url = _get_wda_session_url(wda_url, session_id, "wda/keys")
 
-        # Send text to WDA
+        # 向 WDA 发送文本
         response = requests.post(
             url, json={"value": list(text), "frequency": frequency}, timeout=30, verify=False
         )
@@ -66,20 +66,20 @@ def clear_text(
     session_id: str | None = None,
 ) -> None:
     """
-    Clear text in the currently focused input field.
+    清空当前焦点输入框中的文本。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
 
-    Note:
-        This sends a clear command to the active element.
-        The input field must be focused before calling this function.
+    说明:
+        该方法会向当前激活元素发送清空命令。
+        调用前输入框必须已聚焦。
     """
     try:
         import requests
 
-        # First, try to get the active element
+        # 先尝试获取当前激活元素
         url = _get_wda_session_url(wda_url, session_id, "element/active")
 
         response = requests.get(url, timeout=10, verify=False)
@@ -89,12 +89,12 @@ def clear_text(
             element_id = data.get("value", {}).get("ELEMENT") or data.get("value", {}).get("element-6066-11e4-a52e-4f735466cecf")
 
             if element_id:
-                # Clear the element
+                # 清空该元素
                 clear_url = _get_wda_session_url(wda_url, session_id, f"element/{element_id}/clear")
                 requests.post(clear_url, timeout=10, verify=False)
                 return
 
-        # Fallback: send backspace commands
+        # 兜底方案：发送退格键指令
         _clear_with_backspace(wda_url, session_id)
 
     except ImportError:
@@ -109,20 +109,20 @@ def _clear_with_backspace(
     max_backspaces: int = 100,
 ) -> None:
     """
-    Clear text by sending backspace keys.
+    通过发送退格键清空文本。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        max_backspaces: Maximum number of backspaces to send.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        max_backspaces: 最多发送的退格次数。
     """
     try:
         import requests
 
         url = _get_wda_session_url(wda_url, session_id, "wda/keys")
 
-        # Send backspace character multiple times
-        backspace_char = "\u0008"  # Backspace Unicode character
+        # 多次发送退格字符
+        backspace_char = "\u0008"  # 退格字符（Unicode）
         requests.post(
             url,
             json={"value": [backspace_char] * max_backspaces},
@@ -140,16 +140,16 @@ def send_keys(
     session_id: str | None = None,
 ) -> None:
     """
-    Send a sequence of keys.
+    发送一串按键。
 
-    Args:
-        keys: List of keys to send.
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
+    参数:
+        keys: 要发送的按键列表。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
 
-    Example:
+    示例:
         >>> send_keys(["H", "e", "l", "l", "o"])
-        >>> send_keys(["\n"])  # Send enter key
+        >>> send_keys(["\n"])  # 发送回车键
     """
     try:
         import requests
@@ -170,12 +170,12 @@ def press_enter(
     delay: float = 0.5,
 ) -> None:
     """
-    Press the Enter/Return key.
+    按下 Enter/Return 键。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after pressing enter.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 按下后的延迟（秒）。
     """
     send_keys(["\n"], wda_url, session_id)
     time.sleep(delay)
@@ -186,11 +186,11 @@ def hide_keyboard(
     session_id: str | None = None,
 ) -> None:
     """
-    Hide the on-screen keyboard.
+    隐藏屏幕键盘。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
     """
     try:
         import requests
@@ -210,14 +210,14 @@ def is_keyboard_shown(
     session_id: str | None = None,
 ) -> bool:
     """
-    Check if the on-screen keyboard is currently shown.
+    检查屏幕键盘是否显示。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
 
-    Returns:
-        True if keyboard is shown, False otherwise.
+    返回:
+        键盘显示返回 True，否则返回 False。
     """
     try:
         import requests
@@ -243,15 +243,15 @@ def set_pasteboard(
     wda_url: str = "http://localhost:8100",
 ) -> None:
     """
-    Set the device pasteboard (clipboard) content.
+    设置设备剪贴板内容。
 
-    Args:
-        text: Text to set in pasteboard.
-        wda_url: WebDriverAgent URL.
+    参数:
+        text: 要设置到剪贴板的文本。
+        wda_url: WebDriverAgent 地址。
 
-    Note:
-        This can be useful for inputting large amounts of text.
-        After setting pasteboard, you can simulate paste gesture.
+    说明:
+        适合输入大量文本。
+        设置剪贴板后可模拟粘贴手势。
     """
     try:
         import requests
@@ -272,13 +272,13 @@ def get_pasteboard(
     wda_url: str = "http://localhost:8100",
 ) -> str | None:
     """
-    Get the device pasteboard (clipboard) content.
+    获取设备剪贴板内容。
 
-    Args:
-        wda_url: WebDriverAgent URL.
+    参数:
+        wda_url: WebDriverAgent 地址。
 
-    Returns:
-        Pasteboard content or None if failed.
+    返回:
+        剪贴板内容，失败则返回 None。
     """
     try:
         import requests

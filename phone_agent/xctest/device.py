@@ -1,4 +1,4 @@
-"""Device control utilities for iOS automation via WebDriverAgent."""
+"""通过 WebDriverAgent 进行 iOS 自动化的设备控制工具。"""
 
 import subprocess
 import time
@@ -6,25 +6,25 @@ from typing import Optional
 
 from phone_agent.config.apps_ios import APP_PACKAGES_IOS as APP_PACKAGES
 
-SCALE_FACTOR = 3 # 3 for most modern iPhone 
+SCALE_FACTOR = 3  # 多数新款 iPhone 使用 3
 
 def _get_wda_session_url(wda_url: str, session_id: str | None, endpoint: str) -> str:
     """
-    Get the correct WDA URL for a session endpoint.
+    获取会话端点对应的正确 WDA URL。
 
-    Args:
-        wda_url: Base WDA URL.
-        session_id: Optional session ID.
-        endpoint: The endpoint path.
+    参数:
+        wda_url: WDA 基础地址。
+        session_id: 可选的会话 ID。
+        endpoint: 端点路径。
 
-    Returns:
-        Full URL for the endpoint.
+    返回:
+        端点的完整 URL。
     """
     base = wda_url.rstrip("/")
     if session_id:
         return f"{base}/session/{session_id}/{endpoint}"
     else:
-        # Try to use WDA endpoints without session when possible
+        # 尽量在无需 session 时使用 WDA 端点
         return f"{base}/{endpoint}"
 
 
@@ -32,32 +32,32 @@ def get_current_app(
     wda_url: str = "http://localhost:8100", session_id: str | None = None
 ) -> str:
     """
-    Get the currently active app bundle ID and name.
+    获取当前前台应用的 bundle ID 和名称。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
 
-    Returns:
-        The app name if recognized, otherwise "System Home".
+    返回:
+        若可识别则返回应用名称，否则返回 "System Home"。
     """
     try:
         import requests
 
-        # Get active app info from WDA using activeAppInfo endpoint
+        # 通过 activeAppInfo 端点从 WDA 获取当前应用信息
         response = requests.get(
             f"{wda_url.rstrip('/')}/wda/activeAppInfo", timeout=5, verify=False
         )
 
         if response.status_code == 200:
             data = response.json()
-            # Extract bundle ID from response
-            # Response format: {"value": {"bundleId": "com.apple.AppStore", "name": "", "pid": 825, "processArguments": {...}}, "sessionId": "..."}
+            # 从响应中提取 bundle ID
+            # 响应格式: {"value": {"bundleId": "com.apple.AppStore", "name": "", "pid": 825, "processArguments": {...}}, "sessionId": "..."}
             value = data.get("value", {})
             bundle_id = value.get("bundleId", "")
 
             if bundle_id:
-                # Try to find app name from bundle ID
+                # 根据 bundle ID 尝试匹配应用名称
                 for app_name, package in APP_PACKAGES.items():
                     if package == bundle_id:
                         return app_name
@@ -80,21 +80,21 @@ def tap(
     delay: float = 1.0,
 ) -> None:
     """
-    Tap at the specified coordinates using WebDriver W3C Actions API.
+    使用 WebDriver W3C Actions API 在指定坐标点击。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after tap.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 点击后的延迟（秒）。
     """
     try:
         import requests
 
         url = _get_wda_session_url(wda_url, session_id, "actions")
 
-        # W3C WebDriver Actions API for tap/click
+        # 用于点击的 W3C WebDriver Actions API
         actions = {
             "actions": [
                 {
@@ -129,21 +129,21 @@ def double_tap(
     delay: float = 1.0,
 ) -> None:
     """
-    Double tap at the specified coordinates using WebDriver W3C Actions API.
+    使用 WebDriver W3C Actions API 在指定坐标双击。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after double tap.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 双击后的延迟（秒）。
     """
     try:
         import requests
 
         url = _get_wda_session_url(wda_url, session_id, "actions")
 
-        # W3C WebDriver Actions API for double tap
+        # 用于双击的 W3C WebDriver Actions API
         actions = {
             "actions": [
                 {
@@ -183,23 +183,23 @@ def long_press(
     delay: float = 1.0,
 ) -> None:
     """
-    Long press at the specified coordinates using WebDriver W3C Actions API.
+    使用 WebDriver W3C Actions API 在指定坐标长按。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        duration: Duration of press in seconds.
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after long press.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        duration: 长按持续时间（秒）。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 长按后的延迟（秒）。
     """
     try:
         import requests
 
         url = _get_wda_session_url(wda_url, session_id, "actions")
 
-        # W3C WebDriver Actions API for long press
-        # Convert duration to milliseconds
+        # 用于长按的 W3C WebDriver Actions API
+        # 将持续时间转换为毫秒
         duration_ms = int(duration * 1000)
 
         actions = {
@@ -239,30 +239,30 @@ def swipe(
     delay: float = 1.0,
 ) -> None:
     """
-    Swipe from start to end coordinates using WDA dragfromtoforduration endpoint.
+    使用 WDA 的 dragfromtoforduration 端点从起点滑动到终点。
 
-    Args:
-        start_x: Starting X coordinate.
-        start_y: Starting Y coordinate.
-        end_x: Ending X coordinate.
-        end_y: Ending Y coordinate.
-        duration: Duration of swipe in seconds (auto-calculated if None).
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after swipe.
+    参数:
+        start_x: 起点 X 坐标。
+        start_y: 起点 Y 坐标。
+        end_x: 终点 X 坐标。
+        end_y: 终点 Y 坐标。
+        duration: 滑动持续时间（秒，None 时自动计算）。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 滑动后的延迟（秒）。
     """
     try:
         import requests
 
         if duration is None:
-            # Calculate duration based on distance
+            # 根据距离计算持续时间
             dist_sq = (start_x - end_x) ** 2 + (start_y - end_y) ** 2
-            duration = dist_sq / 1000000  # Convert to seconds
-            duration = max(0.3, min(duration, 2.0))  # Clamp between 0.3-2 seconds
+            duration = dist_sq / 1000000  # 换算为秒
+            duration = max(0.3, min(duration, 2.0))  # 限制在 0.3-2 秒之间
 
         url = _get_wda_session_url(wda_url, session_id, "wda/dragfromtoforduration")
 
-        # WDA dragfromtoforduration API payload
+        # WDA dragfromtoforduration API 请求体
         payload = {
             "fromX": start_x / SCALE_FACTOR,
             "fromY": start_y / SCALE_FACTOR,
@@ -287,23 +287,22 @@ def back(
     delay: float = 1.0,
 ) -> None:
     """
-    Navigate back (swipe from left edge).
+    返回上一页（从左边缘滑动）。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after navigation.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 返回后的延迟（秒）。
 
-    Note:
-        iOS doesn't have a universal back button. This simulates a back gesture
-        by swiping from the left edge of the screen.
+    说明:
+        iOS 没有通用的返回按钮，这里通过从屏幕左边缘滑动模拟返回手势。
     """
     try:
         import requests
 
         url = _get_wda_session_url(wda_url, session_id, "wda/dragfromtoforduration")
 
-        # Swipe from left edge to simulate back gesture
+        # 从左边缘滑动以模拟返回手势
         payload = {
             "fromX": 0,
             "fromY": 640,
@@ -328,12 +327,12 @@ def home(
     delay: float = 1.0,
 ) -> None:
     """
-    Press the home button.
+    按下 Home 键。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after pressing home.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 按下后的延迟（秒）。
     """
     try:
         import requests
@@ -357,16 +356,16 @@ def launch_app(
     delay: float = 1.0,
 ) -> bool:
     """
-    Launch an app by name.
+    根据应用名称启动应用。
 
-    Args:
-        app_name: The app name (must be in APP_PACKAGES).
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after launching.
+    参数:
+        app_name: 应用名称（必须存在于 APP_PACKAGES）。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 启动后的延迟（秒）。
 
-    Returns:
-        True if app was launched, False if app not found.
+    返回:
+        启动成功返回 True，未找到应用返回 False。
     """
     if app_name not in APP_PACKAGES:
         return False
@@ -396,14 +395,14 @@ def get_screen_size(
     wda_url: str = "http://localhost:8100", session_id: str | None = None
 ) -> tuple[int, int]:
     """
-    Get the screen dimensions.
+    获取屏幕尺寸。
 
-    Args:
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
+    参数:
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
 
-    Returns:
-        Tuple of (width, height). Returns (375, 812) as default if unable to fetch.
+    返回:
+        (width, height) 元组。若无法获取则默认返回 (375, 812)。
     """
     try:
         import requests
@@ -424,7 +423,7 @@ def get_screen_size(
     except Exception as e:
         print(f"Error getting screen size: {e}")
 
-    # Default iPhone screen size (iPhone X and later)
+    # 默认的 iPhone 屏幕尺寸（iPhone X 及以后）
     return 375, 812
 
 
@@ -435,13 +434,13 @@ def press_button(
     delay: float = 1.0,
 ) -> None:
     """
-    Press a physical button.
+    按下实体按键。
 
-    Args:
-        button_name: Button name (e.g., "home", "volumeUp", "volumeDown").
-        wda_url: WebDriverAgent URL.
-        session_id: Optional WDA session ID.
-        delay: Delay in seconds after pressing.
+    参数:
+        button_name: 按键名称（例如 "home"、"volumeUp"、"volumeDown"）。
+        wda_url: WebDriverAgent 地址。
+        session_id: 可选的 WDA 会话 ID。
+        delay: 按下后的延迟（秒）。
     """
     try:
         import requests

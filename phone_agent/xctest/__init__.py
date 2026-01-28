@@ -1,4 +1,4 @@
-"""XCTest utilities for iOS device interaction via WebDriverAgent/XCUITest."""
+"""通过 WebDriverAgent/XCUITest 进行 iOS 设备交互的 XCTest 工具。"""
 
 from phone_agent.xctest.connection import (
     ConnectionType,
@@ -24,12 +24,12 @@ from phone_agent.xctest.input import (
 from phone_agent.xctest.screenshot import get_screenshot
 
 __all__ = [
-    # Screenshot
+    # 截图
     "get_screenshot",
-    # Input
+    # 输入
     "type_text",
     "clear_text",
-    # Device control
+    # 设备控制
     "get_current_app",
     "tap",
     "swipe",
@@ -38,7 +38,7 @@ __all__ = [
     "double_tap",
     "long_press",
     "launch_app",
-    # Connection management
+    # 连接管理
     "XCTestConnection",
     "DeviceInfo",
     "ConnectionType",

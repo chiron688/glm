@@ -1,4 +1,4 @@
-"""HDC utilities for HarmonyOS device interaction."""
+"""用于 HarmonyOS 设备交互的 HDC 工具。"""
 
 from phone_agent.hdc.connection import (
     HDCConnection,
@@ -27,14 +27,14 @@ from phone_agent.hdc.input import (
 from phone_agent.hdc.screenshot import get_screenshot
 
 __all__ = [
-    # Screenshot
+    # 截图
     "get_screenshot",
-    # Input
+    # 输入
     "type_text",
     "clear_text",
     "detect_and_set_adb_keyboard",
     "restore_keyboard",
-    # Device control
+    # 设备控制
     "get_current_app",
     "tap",
     "swipe",
@@ -43,7 +43,7 @@ __all__ = [
     "double_tap",
     "long_press",
     "launch_app",
-    # Connection management
+    # 连接管理
     "HDCConnection",
     "DeviceInfo",
     "ConnectionType",

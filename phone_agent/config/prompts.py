@@ -1,4 +1,4 @@
-"""System prompts for the AI agent."""
+"""AI Agent 的系统提示词（中文）。"""
 
 from datetime import datetime
 

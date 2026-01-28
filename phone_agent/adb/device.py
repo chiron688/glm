@@ -1,4 +1,4 @@
-"""Device control utilities for Android automation."""
+"""用于 Android 自动化的设备控制工具。"""
 
 import os
 import subprocess
@@ -11,13 +11,13 @@ from phone_agent.config.timing import TIMING_CONFIG
 
 def get_current_app(device_id: str | None = None) -> str:
     """
-    Get the currently focused app name.
+    获取当前前台应用名称。
 
-    Args:
-        device_id: Optional ADB device ID for multi-device setups.
+    参数:
+        device_id: 可选的 ADB 设备 ID（多设备场景）。
 
-    Returns:
-        The app name if recognized, otherwise "System Home".
+    返回:
+        若可识别则返回应用名称，否则返回 "System Home"。
     """
     adb_prefix = _get_adb_prefix(device_id)
 
@@ -28,7 +28,7 @@ def get_current_app(device_id: str | None = None) -> str:
     if not output:
         raise ValueError("No output from dumpsys window")
 
-    # Parse window focus info
+    # 解析窗口焦点信息
     for line in output.split("\n"):
         if "mCurrentFocus" in line or "mFocusedApp" in line:
             for app_name, package in APP_PACKAGES.items():
@@ -42,13 +42,13 @@ def tap(
     x: int, y: int, device_id: str | None = None, delay: float | None = None
 ) -> None:
     """
-    Tap at the specified coordinates.
+    在指定坐标点击。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after tap. If None, uses configured default.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        device_id: 可选的 ADB 设备 ID。
+        delay: 点击后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_tap_delay
@@ -65,13 +65,13 @@ def double_tap(
     x: int, y: int, device_id: str | None = None, delay: float | None = None
 ) -> None:
     """
-    Double tap at the specified coordinates.
+    在指定坐标双击。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after double tap. If None, uses configured default.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        device_id: 可选的 ADB 设备 ID。
+        delay: 双击后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_double_tap_delay
@@ -96,14 +96,14 @@ def long_press(
     delay: float | None = None,
 ) -> None:
     """
-    Long press at the specified coordinates.
+    在指定坐标长按。
 
-    Args:
-        x: X coordinate.
-        y: Y coordinate.
-        duration_ms: Duration of press in milliseconds.
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after long press. If None, uses configured default.
+    参数:
+        x: X 坐标。
+        y: Y 坐标。
+        duration_ms: 长按持续时间（毫秒）。
+        device_id: 可选的 ADB 设备 ID。
+        delay: 长按后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_long_press_delay
@@ -128,16 +128,16 @@ def swipe(
     delay: float | None = None,
 ) -> None:
     """
-    Swipe from start to end coordinates.
+    从起点滑动到终点。
 
-    Args:
-        start_x: Starting X coordinate.
-        start_y: Starting Y coordinate.
-        end_x: Ending X coordinate.
-        end_y: Ending Y coordinate.
-        duration_ms: Duration of swipe in milliseconds (auto-calculated if None).
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after swipe. If None, uses configured default.
+    参数:
+        start_x: 起点 X 坐标。
+        start_y: 起点 Y 坐标。
+        end_x: 终点 X 坐标。
+        end_y: 终点 Y 坐标。
+        duration_ms: 滑动持续时间（毫秒，None 时自动计算）。
+        device_id: 可选的 ADB 设备 ID。
+        delay: 滑动后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_swipe_delay
@@ -145,10 +145,10 @@ def swipe(
     adb_prefix = _get_adb_prefix(device_id)
 
     if duration_ms is None:
-        # Calculate duration based on distance
+        # 根据距离计算持续时间
         dist_sq = (start_x - end_x) ** 2 + (start_y - end_y) ** 2
         duration_ms = int(dist_sq / 1000)
-        duration_ms = max(1000, min(duration_ms, 2000))  # Clamp between 1000-2000ms
+        duration_ms = max(1000, min(duration_ms, 2000))  # 限制在 1000-2000ms
 
     subprocess.run(
         adb_prefix
@@ -169,11 +169,11 @@ def swipe(
 
 def back(device_id: str | None = None, delay: float | None = None) -> None:
     """
-    Press the back button.
+    按下返回键。
 
-    Args:
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after pressing back. If None, uses configured default.
+    参数:
+        device_id: 可选的 ADB 设备 ID。
+        delay: 返回后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_back_delay
@@ -188,11 +188,11 @@ def back(device_id: str | None = None, delay: float | None = None) -> None:
 
 def home(device_id: str | None = None, delay: float | None = None) -> None:
     """
-    Press the home button.
+    按下 Home 键。
 
-    Args:
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after pressing home. If None, uses configured default.
+    参数:
+        device_id: 可选的 ADB 设备 ID。
+        delay: 按下后的延迟（秒）。为 None 时使用默认配置。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_home_delay
@@ -209,15 +209,15 @@ def launch_app(
     app_name: str, device_id: str | None = None, delay: float | None = None
 ) -> bool:
     """
-    Launch an app by name.
+    根据应用名称启动应用。
 
-    Args:
-        app_name: The app name (must be in APP_PACKAGES).
-        device_id: Optional ADB device ID.
-        delay: Delay in seconds after launching. If None, uses configured default.
+    参数:
+        app_name: 应用名称（必须存在于 APP_PACKAGES）。
+        device_id: 可选的 ADB 设备 ID。
+        delay: 启动后的延迟（秒）。为 None 时使用默认配置。
 
-    Returns:
-        True if app was launched, False if app not found.
+    返回:
+        启动成功返回 True，未找到应用返回 False。
     """
     if delay is None:
         delay = TIMING_CONFIG.device.default_launch_delay
@@ -246,7 +246,7 @@ def launch_app(
 
 
 def _get_adb_prefix(device_id: str | None) -> list:
-    """Get ADB command prefix with optional device specifier."""
+    """获取 ADB 命令前缀（可选设备参数）。"""
     if device_id:
         return ["adb", "-s", device_id]
     return ["adb"]

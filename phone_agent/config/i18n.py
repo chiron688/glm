@@ -1,6 +1,6 @@
-"""Internationalization (i18n) module for Phone Agent UI messages."""
+"""Phone Agent 界面消息的国际化（i18n）模块。"""
 
-# Chinese messages
+# 中文消息
 MESSAGES_ZH = {
     "thinking": "思考过程",
     "action": "执行动作",
@@ -25,7 +25,7 @@ MESSAGES_ZH = {
     "total_inference_time": "总推理时间",
 }
 
-# English messages
+# 英文消息
 MESSAGES_EN = {
     "thinking": "Thinking",
     "action": "Action",
@@ -53,13 +53,13 @@ MESSAGES_EN = {
 
 def get_messages(lang: str = "cn") -> dict:
     """
-    Get UI messages dictionary by language.
+    根据语言获取界面消息字典。
 
-    Args:
-        lang: Language code, 'cn' for Chinese, 'en' for English.
+    参数:
+        lang: 语言代码，'cn' 为中文，'en' 为英文。
 
-    Returns:
-        Dictionary of UI messages.
+    返回:
+        界面消息字典。
     """
     if lang == "en":
         return MESSAGES_EN
@@ -68,14 +68,14 @@ def get_messages(lang: str = "cn") -> dict:
 
 def get_message(key: str, lang: str = "cn") -> str:
     """
-    Get a single UI message by key and language.
+    根据 key 和语言获取单条界面消息。
 
-    Args:
-        key: Message key.
-        lang: Language code, 'cn' for Chinese, 'en' for English.
+    参数:
+        key: 消息 key。
+        lang: 语言代码，'cn' 为中文，'en' 为英文。
 
-    Returns:
-        Message string.
+    返回:
+        消息字符串。
     """
     messages = get_messages(lang)
     return messages.get(key, key)

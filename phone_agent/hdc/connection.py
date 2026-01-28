@@ -1,4 +1,4 @@
-"""HDC connection management for HarmonyOS devices."""
+"""HarmonyOS 设备的 HDC 连接管理。"""
 
 import os
 import subprocess
@@ -10,20 +10,20 @@ from typing import Optional
 from phone_agent.config.timing import TIMING_CONFIG
 
 
-# Global flag to control HDC command output
+# 用于控制 HDC 命令输出的全局标志
 _HDC_VERBOSE = os.getenv("HDC_VERBOSE", "false").lower() in ("true", "1", "yes")
 
 
 def _run_hdc_command(cmd: list, **kwargs) -> subprocess.CompletedProcess:
     """
-    Run HDC command with optional verbose output.
+    执行 HDC 命令，可选打印详细日志。
 
-    Args:
-        cmd: Command list to execute.
-        **kwargs: Additional arguments for subprocess.run.
+    参数:
+        cmd: 要执行的命令列表。
+        **kwargs: subprocess.run 的额外参数。
 
-    Returns:
-        CompletedProcess result.
+    返回:
+        CompletedProcess 结果。
     """
     if _HDC_VERBOSE:
         print(f"[HDC] Running command: {' '.join(cmd)}")
@@ -39,13 +39,13 @@ def _run_hdc_command(cmd: list, **kwargs) -> subprocess.CompletedProcess:
 
 
 def set_hdc_verbose(verbose: bool):
-    """Set HDC verbose mode globally."""
+    """全局设置 HDC 详细日志模式。"""
     global _HDC_VERBOSE
     _HDC_VERBOSE = verbose
 
 
 class ConnectionType(Enum):
-    """Type of HDC connection."""
+    """HDC 连接类型。"""
 
     USB = "usb"
     WIFI = "wifi"
@@ -54,7 +54,7 @@ class ConnectionType(Enum):
 
 @dataclass
 class DeviceInfo:
-    """Information about a connected device."""
+    """已连接设备信息。"""
 
     device_id: str
     status: str
@@ -65,46 +65,46 @@ class DeviceInfo:
 
 class HDCConnection:
     """
-    Manages HDC connections to HarmonyOS devices.
+    管理 HarmonyOS 设备的 HDC 连接。
 
-    Supports USB, WiFi, and remote TCP/IP connections.
+    支持 USB、WiFi 和远程 TCP/IP 连接。
 
-    Example:
+    示例:
         >>> conn = HDCConnection()
-        >>> # Connect to remote device
+        >>> # 连接远程设备
         >>> conn.connect("192.168.1.100:5555")
-        >>> # List devices
+        >>> # 列出设备
         >>> devices = conn.list_devices()
-        >>> # Disconnect
+        >>> # 断开连接
         >>> conn.disconnect("192.168.1.100:5555")
     """
 
     def __init__(self, hdc_path: str = "hdc"):
         """
-        Initialize HDC connection manager.
+        初始化 HDC 连接管理器。
 
-        Args:
-            hdc_path: Path to HDC executable.
+        参数:
+            hdc_path: HDC 可执行文件路径。
         """
         self.hdc_path = hdc_path
 
     def connect(self, address: str, timeout: int = 10) -> tuple[bool, str]:
         """
-        Connect to a remote device via TCP/IP.
+        通过 TCP/IP 连接远程设备。
 
-        Args:
-            address: Device address in format "host:port" (e.g., "192.168.1.100:5555").
-            timeout: Connection timeout in seconds.
+        参数:
+            address: 设备地址，格式为 "host:port"（例如 "192.168.1.100:5555"）。
+            timeout: 连接超时时间（秒）。
 
-        Returns:
-            Tuple of (success, message).
+        返回:
+            (success, message) 的元组。
 
-        Note:
-            The remote device must have TCP/IP debugging enabled.
+        说明:
+            远程设备需开启 TCP/IP 调试。
         """
-        # Validate address format
+        # 校验地址格式
         if ":" not in address:
-            address = f"{address}:5555"  # Default HDC port
+            address = f"{address}:5555"  # 默认 HDC 端口
 
         try:
             result = _run_hdc_command(
@@ -130,22 +130,22 @@ class HDCConnection:
 
     def disconnect(self, address: str | None = None) -> tuple[bool, str]:
         """
-        Disconnect from a remote device.
+        断开远程设备连接。
 
-        Args:
-            address: Device address to disconnect. If None, disconnects all.
+        参数:
+            address: 要断开的设备地址。为 None 时断开全部。
 
-        Returns:
-            Tuple of (success, message).
+        返回:
+            (success, message) 的元组。
         """
         try:
             if address:
                 cmd = [self.hdc_path, "tdisconn", address]
             else:
-                # HDC doesn't have a "disconnect all" command, so we need to list and disconnect each
+                # HDC 没有“断开全部”命令，需要先列出再逐个断开
                 devices = self.list_devices()
                 for device in devices:
-                    if ":" in device.device_id:  # Remote device
+                    if ":" in device.device_id:  # 远程设备
                         _run_hdc_command(
                             [self.hdc_path, "tdisconn", device.device_id],
                             capture_output=True,
@@ -164,10 +164,10 @@ class HDCConnection:
 
     def list_devices(self) -> list[DeviceInfo]:
         """
-        List all connected devices.
+        列出所有已连接设备。
 
-        Returns:
-            List of DeviceInfo objects.
+        返回:
+            DeviceInfo 对象列表。
         """
         try:
             result = _run_hdc_command(
@@ -182,18 +182,18 @@ class HDCConnection:
                 if not line.strip():
                     continue
 
-                # HDC output format: device_id (status)
-                # Example: "192.168.1.100:5555" or "FMR0223C13000649"
+                # HDC 输出格式: device_id (status)
+                # 示例: "192.168.1.100:5555" 或 "FMR0223C13000649"
                 device_id = line.strip()
 
-                # Determine connection type
+                # 判断连接类型
                 if ":" in device_id:
                     conn_type = ConnectionType.REMOTE
                 else:
                     conn_type = ConnectionType.USB
 
-                # HDC doesn't provide detailed status in list command
-                # We assume "Connected" status for devices that appear
+                # HDC 的列表命令不提供详细状态
+                # 对出现的设备默认视为已连接
                 devices.append(
                     DeviceInfo(
                         device_id=device_id,
@@ -211,13 +211,13 @@ class HDCConnection:
 
     def get_device_info(self, device_id: str | None = None) -> DeviceInfo | None:
         """
-        Get detailed information about a device.
+        获取设备的详细信息。
 
-        Args:
-            device_id: Device ID. If None, uses first available device.
+        参数:
+            device_id: 设备 ID。为 None 时使用第一个可用设备。
 
-        Returns:
-            DeviceInfo or None if not found.
+        返回:
+            DeviceInfo 对象，未找到则返回 None。
         """
         devices = self.list_devices()
 
@@ -235,13 +235,13 @@ class HDCConnection:
 
     def is_connected(self, device_id: str | None = None) -> bool:
         """
-        Check if a device is connected.
+        检查设备是否已连接。
 
-        Args:
-            device_id: Device ID to check. If None, checks if any device is connected.
+        参数:
+            device_id: 要检查的设备 ID。为 None 时检查是否有任意设备连接。
 
-        Returns:
-            True if connected, False otherwise.
+        返回:
+            已连接返回 True，否则返回 False。
         """
         devices = self.list_devices()
 
@@ -257,20 +257,20 @@ class HDCConnection:
         self, port: int = 5555, device_id: str | None = None
     ) -> tuple[bool, str]:
         """
-        Enable TCP/IP debugging on a USB-connected device.
+        在 USB 连接的设备上启用 TCP/IP 调试。
 
-        This allows subsequent wireless connections to the device.
+        这将允许后续通过无线连接设备。
 
-        Args:
-            port: TCP port for HDC (default: 5555).
-            device_id: Device ID. If None, uses first available device.
+        参数:
+            port: HDC 的 TCP 端口（默认: 5555）。
+            device_id: 设备 ID。为 None 时使用第一个可用设备。
 
-        Returns:
-            Tuple of (success, message).
+        返回:
+            (success, message) 的元组。
 
-        Note:
-            The device must be connected via USB first.
-            After this, you can disconnect USB and connect via WiFi.
+        说明:
+            设备必须先通过 USB 连接。
+            启用后可拔掉 USB，通过 WiFi 连接。
         """
         try:
             cmd = [self.hdc_path]
@@ -293,13 +293,13 @@ class HDCConnection:
 
     def get_device_ip(self, device_id: str | None = None) -> str | None:
         """
-        Get the IP address of a connected device.
+        获取已连接设备的 IP 地址。
 
-        Args:
-            device_id: Device ID. If None, uses first available device.
+        参数:
+            device_id: 设备 ID。为 None 时使用第一个可用设备。
 
-        Returns:
-            IP address string or None if not found.
+        返回:
+            IP 地址字符串，未找到则返回 None。
         """
         try:
             cmd = [self.hdc_path]
@@ -309,14 +309,14 @@ class HDCConnection:
 
             result = _run_hdc_command(cmd, capture_output=True, text=True, encoding="utf-8", timeout=5)
 
-            # Parse IP from ifconfig output
+            # 从 ifconfig 输出中解析 IP
             for line in result.stdout.split("\n"):
                 if "inet addr:" in line or "inet " in line:
                     parts = line.strip().split()
                     for i, part in enumerate(parts):
                         if "addr:" in part:
                             ip = part.split(":")[1]
-                            # Filter out localhost
+                            # 过滤本地地址
                             if not ip.startswith("127."):
                                 return ip
                         elif part == "inet" and i + 1 < len(parts):
@@ -332,20 +332,20 @@ class HDCConnection:
 
     def restart_server(self) -> tuple[bool, str]:
         """
-        Restart the HDC server.
+        重启 HDC 服务。
 
-        Returns:
-            Tuple of (success, message).
+        返回:
+            (success, message) 的元组。
         """
         try:
-            # Kill server
+            # 终止服务
             _run_hdc_command(
                 [self.hdc_path, "kill"], capture_output=True, timeout=5
             )
 
             time.sleep(TIMING_CONFIG.connection.server_restart_delay)
 
-            # Start server (HDC auto-starts when running commands)
+            # 启动服务（HDC 在执行命令时会自动启动）
             _run_hdc_command(
                 [self.hdc_path, "start", "-r"], capture_output=True, timeout=5
             )
@@ -358,13 +358,13 @@ class HDCConnection:
 
 def quick_connect(address: str) -> tuple[bool, str]:
     """
-    Quick helper to connect to a remote device.
+    快速连接远程设备的辅助方法。
 
-    Args:
-        address: Device address (e.g., "192.168.1.100" or "192.168.1.100:5555").
+    参数:
+        address: 设备地址（例如 "192.168.1.100" 或 "192.168.1.100:5555"）。
 
-    Returns:
-        Tuple of (success, message).
+    返回:
+        (success, message) 的元组。
     """
     conn = HDCConnection()
     return conn.connect(address)
@@ -372,10 +372,10 @@ def quick_connect(address: str) -> tuple[bool, str]:
 
 def list_devices() -> list[DeviceInfo]:
     """
-    Quick helper to list connected devices.
+    快速列出已连接设备的辅助方法。
 
-    Returns:
-        List of DeviceInfo objects.
+    返回:
+        DeviceInfo 对象列表。
     """
     conn = HDCConnection()
     return conn.list_devices()
