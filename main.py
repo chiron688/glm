@@ -11,6 +11,8 @@ Environment Variables:
     PHONE_AGENT_API_KEY: API key for model authentication (default: EMPTY)
     PHONE_AGENT_MAX_STEPS: Maximum steps per task (default: 100)
     PHONE_AGENT_DEVICE_ID: ADB device ID for multi-device setups
+    PHONE_AGENT_DEVICE_IDS: Comma-separated device IDs for cluster runs
+    PHONE_AGENT_WDA_URLS: Comma-separated WDA URLs for iOS cluster runs
 """
 
 import argparse
@@ -23,6 +25,7 @@ from urllib.parse import urlparse
 from openai import OpenAI
 
 from phone_agent.agent import AgentConfig
+from phone_agent.cluster import ClusterRunner, DeviceEndpoint
 from phone_agent.config.apps import list_supported_apps
 from phone_agent.config.apps_harmonyos import list_supported_apps as list_harmonyos_apps
 from phone_agent.config.apps_ios import list_supported_apps as list_ios_apps
@@ -33,8 +36,12 @@ from phone_agent.xctest import list_devices as list_ios_devices
 
 
 def check_system_requirements(
-    device_type: DeviceType = DeviceType.ADB, wda_url: str = "http://localhost:8100"
-) -> bool:
+    device_type: DeviceType = DeviceType.ADB,
+    wda_url: str = "http://localhost:8100",
+    device_ids: list[str] | None = None,
+    all_devices: bool = False,
+    wda_urls: list[str] | None = None,
+) -> tuple[bool, list[str]]:
     """
     Check system requirements before running the agent.
 
@@ -47,14 +54,18 @@ def check_system_requirements(
     Args:
         device_type: Type of device tool (ADB, HDC, or IOS).
         wda_url: WebDriverAgent URL (for iOS only).
+        device_ids: Optional device IDs to validate.
+        all_devices: Whether to use all connected devices.
+        wda_urls: Optional list of WDA URLs for iOS cluster checks.
 
     Returns:
-        True if all checks pass, False otherwise.
+        (ok, selected_device_ids)
     """
     print("🔍 Checking system requirements...")
     print("-" * 50)
 
     all_passed = True
+    selected_device_ids: list[str] = []
 
     # Determine tool name and command
     if device_type == DeviceType.IOS:
@@ -118,31 +129,33 @@ def check_system_requirements(
     if not all_passed:
         print("-" * 50)
         print("❌ System check failed. Please fix the issues above.")
-        return False
+        return False, selected_device_ids
 
     # Check 2: Device connected
     print("2. Checking connected devices...", end=" ")
     try:
+        connected_ids: list[str] = []
         if device_type == DeviceType.ADB:
             result = subprocess.run(
                 ["adb", "devices"], capture_output=True, text=True, timeout=10
             )
             lines = result.stdout.strip().split("\n")
-            # Filter out header and empty lines, look for 'device' status
             devices = [
                 line for line in lines[1:] if line.strip() and "\tdevice" in line
             ]
+            connected_ids = [d.split("\t")[0] for d in devices]
         elif device_type == DeviceType.HDC:
             result = subprocess.run(
                 ["hdc", "list", "targets"], capture_output=True, text=True, timeout=10
             )
             lines = result.stdout.strip().split("\n")
             devices = [line for line in lines if line.strip()]
+            connected_ids = [d.strip() for d in devices]
         else:  # IOS
             ios_devices = list_ios_devices()
-            devices = [d.device_id for d in ios_devices]
+            connected_ids = [d.device_id for d in ios_devices]
 
-        if not devices:
+        if not connected_ids:
             print("❌ FAILED")
             print("   Error: No devices connected.")
             print("   Solution:")
@@ -165,15 +178,35 @@ def check_system_requirements(
                 print("     4. Or connect via WiFi using device IP")
             all_passed = False
         else:
-            if device_type == DeviceType.ADB:
-                device_ids = [d.split("\t")[0] for d in devices]
-            elif device_type == DeviceType.HDC:
-                device_ids = [d.strip() for d in devices]
-            else:  # IOS
-                device_ids = devices
-            print(
-                f"✅ OK ({len(devices)} device(s): {', '.join(device_ids[:2])}{'...' if len(device_ids) > 2 else ''})"
-            )
+            requested_ids = [d for d in (device_ids or []) if d]
+            missing_ids = []
+            if requested_ids:
+                missing_ids = [d for d in requested_ids if d not in connected_ids]
+                if missing_ids:
+                    print("❌ FAILED")
+                    print(
+                        "   Error: Requested device(s) not connected: "
+                        + ", ".join(missing_ids)
+                    )
+                    all_passed = False
+                else:
+                    selected_device_ids = requested_ids
+            elif all_devices:
+                selected_device_ids = connected_ids
+            else:
+                if len(connected_ids) == 1:
+                    selected_device_ids = [connected_ids[0]]
+                else:
+                    print("❌ FAILED")
+                    print(
+                        "   Error: Multiple devices detected. Please specify --device-id/--device-ids or --all-devices."
+                    )
+                    all_passed = False
+
+            if all_passed:
+                preview = ", ".join(selected_device_ids[:2])
+                suffix = "..." if len(selected_device_ids) > 2 else ""
+                print(f"✅ OK ({len(selected_device_ids)} device(s): {preview}{suffix})")
     except subprocess.TimeoutExpired:
         print("❌ FAILED")
         print(f"   Error: {tool_name} command timed out.")
@@ -187,25 +220,32 @@ def check_system_requirements(
     if not all_passed:
         print("-" * 50)
         print("❌ System check failed. Please fix the issues above.")
-        return False
+        return False, selected_device_ids
 
     # Check 3: ADB Keyboard installed (only for ADB) or WebDriverAgent (for iOS)
     if device_type == DeviceType.ADB:
         print("3. Checking ADB Keyboard...", end=" ")
+        failures: list[str] = []
         try:
-            result = subprocess.run(
-                ["adb", "shell", "ime", "list", "-s"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            ime_list = result.stdout.strip()
+            for device_id in selected_device_ids:
+                result = subprocess.run(
+                    ["adb", "-s", device_id, "shell", "ime", "list", "-s"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                ime_list = result.stdout.strip()
+                if "com.android.adbkeyboard/.AdbIME" not in ime_list:
+                    failures.append(device_id)
 
-            if "com.android.adbkeyboard/.AdbIME" in ime_list:
+            if not failures:
                 print("✅ OK")
             else:
                 print("❌ FAILED")
-                print("   Error: ADB Keyboard is not installed on the device.")
+                print(
+                    "   Error: ADB Keyboard is not installed on device(s): "
+                    + ", ".join(failures)
+                )
                 print("   Solution:")
                 print("     1. Download ADB Keyboard APK from:")
                 print(
@@ -229,21 +269,34 @@ def check_system_requirements(
         print("3. Skipping keyboard check for HarmonyOS...", end=" ")
         print("✅ OK (using native input)")
     else:  # IOS
-        # Check WebDriverAgent
-        print(f"3. Checking WebDriverAgent ({wda_url})...", end=" ")
-        try:
-            conn = XCTestConnection(wda_url=wda_url)
+        check_urls = wda_urls or [wda_url]
+        if len(selected_device_ids) > 1 and len(check_urls) != len(selected_device_ids):
+            print("3. Checking WebDriverAgent...", end=" ")
+            print("❌ FAILED")
+            print(
+                "   Error: Multiple iOS devices require matching --wda-urls."
+            )
+            all_passed = False
+        else:
+            print("3. Checking WebDriverAgent...", end=" ")
+            failures: list[str] = []
+            for url in check_urls:
+                try:
+                    conn = XCTestConnection(wda_url=url)
+                    if not conn.is_wda_ready():
+                        failures.append(url)
+                except Exception:
+                    failures.append(url)
 
-            if conn.is_wda_ready():
-                print("✅ OK")
-                # Get WDA status for additional info
-                status = conn.get_wda_status()
-                if status:
-                    session_id = status.get("sessionId", "N/A")
-                    print(f"   Session ID: {session_id}")
+            if not failures:
+                suffix = f" ({len(check_urls)} endpoint(s))" if len(check_urls) > 1 else ""
+                print(f"✅ OK{suffix}")
             else:
                 print("❌ FAILED")
-                print("   Error: WebDriverAgent is not running or not accessible.")
+                print(
+                    "   Error: WebDriverAgent not reachable: "
+                    + ", ".join(failures)
+                )
                 print("   Solution:")
                 print("     1. Run WebDriverAgent on your iOS device via Xcode")
                 print("     2. For USB: Set up port forwarding: iproxy 8100 8100")
@@ -252,10 +305,6 @@ def check_system_requirements(
                 )
                 print("     4. Verify in browser: open http://localhost:8100/status")
                 all_passed = False
-        except Exception as e:
-            print("❌ FAILED")
-            print(f"   Error: {e}")
-            all_passed = False
 
     print("-" * 50)
 
@@ -264,7 +313,7 @@ def check_system_requirements(
     else:
         print("❌ System check failed. Please fix the issues above.")
 
-    return all_passed
+    return all_passed, selected_device_ids
 
 
 def check_model_api(base_url: str, model_name: str, api_key: str = "EMPTY") -> bool:
@@ -350,6 +399,27 @@ def check_model_api(base_url: str, model_name: str, api_key: str = "EMPTY") -> b
     return all_passed
 
 
+def _parse_csv_arg(value: str | None) -> list[str]:
+    if not value:
+        return []
+    items = []
+    for part in value.split(","):
+        item = part.strip()
+        if item:
+            items.append(item)
+    return items
+
+
+def _merge_unique(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for item in items:
+        if item and item not in seen:
+            result.append(item)
+            seen.add(item)
+    return result
+
+
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
@@ -383,6 +453,12 @@ Examples:
 
     # iOS COTA example
     python main.py --device-type ios "打开Safari搜索iPhone技巧"
+
+    # Cluster run (all connected Android devices)
+    python main.py --all-devices "打开抖音浏览10分钟"
+
+    # Cluster run (multiple iOS devices)
+    python main.py --device-type ios --device-ids <udid1>,<udid2> --wda-urls http://localhost:8100,http://localhost:8101 "打开Safari搜索iPhone技巧"
 
     # iOS device utilities
     python main.py --device-type ios --list-devices
@@ -426,7 +502,20 @@ Examples:
         "-d",
         type=str,
         default=os.getenv("PHONE_AGENT_DEVICE_ID"),
-        help="ADB device ID",
+        help="Single device ID (ADB/HDC/iOS)",
+    )
+
+    parser.add_argument(
+        "--device-ids",
+        type=str,
+        default=os.getenv("PHONE_AGENT_DEVICE_IDS"),
+        help="Comma-separated device IDs for cluster runs",
+    )
+
+    parser.add_argument(
+        "--all-devices",
+        action="store_true",
+        help="Use all connected devices (cluster mode)",
     )
 
     parser.add_argument(
@@ -468,6 +557,13 @@ Examples:
     )
 
     parser.add_argument(
+        "--wda-urls",
+        type=str,
+        default=os.getenv("PHONE_AGENT_WDA_URLS"),
+        help="Comma-separated WDA URLs for iOS cluster runs",
+    )
+
+    parser.add_argument(
         "--pair",
         action="store_true",
         help="Pair with iOS device (required for some operations)",
@@ -504,6 +600,18 @@ Examples:
         help="Device type: adb for Android, hdc for HarmonyOS, ios for iPhone (default: adb)",
     )
 
+    cluster_group = parser.add_mutually_exclusive_group()
+    cluster_group.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run tasks in parallel across devices (cluster mode)",
+    )
+    cluster_group.add_argument(
+        "--sequential",
+        action="store_true",
+        help="Run tasks sequentially across devices (cluster mode)",
+    )
+
 
     parser.add_argument(
         "task",
@@ -513,6 +621,29 @@ Examples:
     )
 
     return parser.parse_args()
+
+
+def _build_device_endpoints(
+    device_type: DeviceType,
+    device_ids: list[str],
+    wda_url: str,
+    wda_urls: list[str],
+) -> list[DeviceEndpoint]:
+    if device_type == DeviceType.IOS:
+        if device_ids:
+            urls = wda_urls or [wda_url]
+            if len(urls) != len(device_ids):
+                raise ValueError("Multiple iOS devices require matching --wda-urls.")
+            return [
+                DeviceEndpoint(device_type, device_id, wda_url=urls[idx])
+                for idx, device_id in enumerate(device_ids)
+            ]
+        urls = wda_urls or [wda_url]
+        return [DeviceEndpoint(device_type, None, wda_url=url) for url in urls]
+
+    if not device_ids:
+        device_ids = [None]
+    return [DeviceEndpoint(device_type, device_id) for device_id in device_ids]
 
 
 def handle_ios_device_commands(args) -> bool:
@@ -722,13 +853,24 @@ def main():
     if handle_device_commands(args):
         return
 
+    requested_device_ids = _merge_unique(
+        _parse_csv_arg(args.device_ids)
+        + ([args.device_id] if args.device_id else [])
+    )
+    wda_urls = _merge_unique(_parse_csv_arg(args.wda_urls))
+
     # Run system requirements check before proceeding
-    if not check_system_requirements(
+    device_ids_for_check = None if args.all_devices else requested_device_ids or None
+    passed, selected_device_ids = check_system_requirements(
         device_type,
         wda_url=args.wda_url
         if device_type == DeviceType.IOS
         else "http://localhost:8100",
-    ):
+        device_ids=device_ids_for_check,
+        all_devices=args.all_devices,
+        wda_urls=wda_urls or None,
+    )
+    if not passed:
         sys.exit(1)
 
     # Create configurations and agent based on device type
@@ -746,32 +888,75 @@ def main():
         if not check_model_api(args.base_url, args.model, args.apikey):
             sys.exit(1)
 
-    if device_type == DeviceType.IOS:
-        agent_config = COTAIOSAgentConfig(
-            max_steps=args.max_steps,
+    try:
+        endpoints = _build_device_endpoints(
+            device_type=device_type,
+            device_ids=selected_device_ids,
             wda_url=args.wda_url,
-            device_id=args.device_id,
-            verbose=not args.quiet,
-            lang=args.lang,
+            wda_urls=wda_urls,
         )
-        agent = COTAIOSAgent(
+    except ValueError as exc:
+        print(f"❌ {exc}")
+        sys.exit(1)
+
+    parallel = True
+    if args.sequential:
+        parallel = False
+    elif args.parallel:
+        parallel = True
+
+    agent_config = AgentConfig(
+        max_steps=args.max_steps,
+        device_id=selected_device_ids[0] if len(selected_device_ids) == 1 else None,
+        verbose=not args.quiet,
+        lang=args.lang,
+    )
+    ios_agent_config = COTAIOSAgentConfig(
+        max_steps=args.max_steps,
+        wda_url=args.wda_url,
+        device_id=selected_device_ids[0] if len(selected_device_ids) == 1 else None,
+        verbose=not args.quiet,
+        lang=args.lang,
+    )
+
+    cluster_runner = None
+    agent = None
+    if len(endpoints) > 1:
+        cluster_runner = ClusterRunner(
+            endpoints=endpoints,
             model_config=model_config,
-            agent_config=agent_config,
             cota_config=cota_config,
+            agent_config=agent_config,
+            ios_agent_config=ios_agent_config,
+            parallel=parallel,
         )
     else:
-        # Create Android/HarmonyOS agent
-        agent_config = AgentConfig(
-            max_steps=args.max_steps,
-            device_id=args.device_id,
-            verbose=not args.quiet,
-            lang=args.lang,
-        )
-        agent = COTAPhoneAgent(
-            model_config=model_config,
-            agent_config=agent_config,
-            cota_config=cota_config,
-        )
+        endpoint = endpoints[0]
+        if endpoint.device_type == DeviceType.IOS:
+            ios_agent_config = COTAIOSAgentConfig(
+                max_steps=args.max_steps,
+                wda_url=endpoint.wda_url or args.wda_url,
+                device_id=endpoint.device_id,
+                verbose=not args.quiet,
+                lang=args.lang,
+            )
+            agent = COTAIOSAgent(
+                model_config=model_config,
+                agent_config=ios_agent_config,
+                cota_config=cota_config,
+            )
+        else:
+            agent_config = AgentConfig(
+                max_steps=args.max_steps,
+                device_id=endpoint.device_id,
+                verbose=not args.quiet,
+                lang=args.lang,
+            )
+            agent = COTAPhoneAgent(
+                model_config=model_config,
+                agent_config=agent_config,
+                cota_config=cota_config,
+            )
 
     # Print header
     print("=" * 50)
@@ -786,35 +971,35 @@ def main():
     print(f"Language: {agent_config.lang}")
     print(f"Device Type: {args.device_type.upper()}")
 
-    # Show iOS-specific config
-    if device_type == DeviceType.IOS:
-        print(f"WDA URL: {args.wda_url}")
-
-    # Show device info
-    if device_type == DeviceType.IOS:
-        devices = list_ios_devices()
-        if agent_config.device_id:
-            print(f"Device: {agent_config.device_id}")
-        elif devices:
-            device = devices[0]
-            print(f"Device: {device.device_name or device.device_id[:16]}")
-            if device.model and device.ios_version:
-                print(f"        {device.model}, iOS {device.ios_version}")
+    if cluster_runner:
+        mode = "PARALLEL" if parallel else "SEQUENTIAL"
+        print(f"Cluster: {len(endpoints)} device(s) ({mode})")
+        for endpoint in endpoints:
+            if endpoint.device_type == DeviceType.IOS:
+                label = endpoint.device_id or "auto"
+                print(f"Device: {label} | WDA: {endpoint.wda_url}")
+            else:
+                label = endpoint.device_id or "auto"
+                print(f"Device: {label}")
     else:
-        device_factory = get_device_factory()
-        devices = device_factory.list_devices()
-        if agent_config.device_id:
-            print(f"Device: {agent_config.device_id}")
-        elif devices:
-            print(f"Device: {devices[0].device_id} (auto-detected)")
+        if device_type == DeviceType.IOS:
+            print(f"WDA URL: {ios_agent_config.wda_url}")
+        label = endpoints[0].device_id or "auto"
+        print(f"Device: {label}")
 
     print("=" * 50)
 
     # Run with provided task or enter interactive mode
     if args.task:
         print(f"\nTask: {args.task}\n")
-        result = agent.run(args.task)
-        print(f"\nResult: {result}")
+        if cluster_runner:
+            results = cluster_runner.run(args.task)
+            print("\nResults:")
+            for key, value in results.items():
+                print(f"  [{key}] {value}")
+        else:
+            result = agent.run(args.task)
+            print(f"\nResult: {result}")
     else:
         # Interactive mode
         print("\nEntering interactive mode. Type 'quit' to exit.\n")
@@ -831,9 +1016,16 @@ def main():
                     continue
 
                 print()
-                result = agent.run(task)
-                print(f"\nResult: {result}\n")
-                agent.reset()
+                if cluster_runner:
+                    results = cluster_runner.run(task)
+                    print("\nResults:")
+                    for key, value in results.items():
+                        print(f"  [{key}] {value}")
+                    print()
+                else:
+                    result = agent.run(task)
+                    print(f"\nResult: {result}\n")
+                    agent.reset()
 
             except KeyboardInterrupt:
                 print("\n\nInterrupted. Goodbye!")

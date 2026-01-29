@@ -28,6 +28,7 @@ from phone_agent.cota import (
     FastActionSystem,
     SlowPlannerSystem,
 )
+from phone_agent.cluster import ClusterRunner, DeviceEndpoint
 
 __version__ = "0.1.0"
 __all__ = [
@@ -40,6 +41,8 @@ __all__ = [
     "COTACoordinator",
     "FastActionSystem",
     "SlowPlannerSystem",
+    "ClusterRunner",
+    "DeviceEndpoint",
     "SkillError",
     "SkillErrorCode",
     "SkillRouter",

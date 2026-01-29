@@ -175,6 +175,21 @@ COTA 引擎（iOS）：
 python main.py --device-type ios "打开Safari搜索iPhone技巧"
 ```
 
+集群模式（同一设备类型批量执行）：
+```bash
+# Android/HarmonyOS：使用全部已连接设备
+python main.py --all-devices "打开抖音浏览10分钟"
+
+# iOS：多设备需对应多个 WDA 地址
+python main.py --device-type ios \
+  --device-ids <udid1>,<udid2> \
+  --wda-urls http://localhost:8100,http://localhost:8101 \
+  "打开Safari搜索iPhone技巧"
+
+# 可选：强制顺序执行
+python main.py --all-devices --sequential "打开抖音浏览10分钟"
+```
+
 ---
 
 ## 9）扩展方向

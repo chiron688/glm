@@ -83,6 +83,22 @@ print(result)
 
 更多示例见：`examples/basic_usage.py`
 
+### 5) 集群模式（多设备）
+
+```bash
+# Android/HarmonyOS：使用全部已连接设备并行执行
+python main.py --all-devices "打开抖音浏览10分钟"
+
+# iOS：多设备需提供对应的 WDA 地址
+python main.py --device-type ios \
+  --device-ids <udid1>,<udid2> \
+  --wda-urls http://localhost:8100,http://localhost:8101 \
+  "打开Safari搜索iPhone技巧"
+
+# 顺序执行
+python main.py --all-devices --sequential "打开抖音浏览10分钟"
+```
+
 ## 常用命令
 
 ```bash
@@ -184,10 +200,12 @@ python scripts/run_skill.py --skill-id publish_video_suite --inputs '{"caption":
 - `PHONE_AGENT_API_KEY`：API Key（默认 `EMPTY`）
 - `PHONE_AGENT_MAX_STEPS`：最大步数（默认 `100`）
 - `PHONE_AGENT_DEVICE_ID`：设备 ID
+- `PHONE_AGENT_DEVICE_IDS`：多设备 ID（逗号分隔）
 - `PHONE_AGENT_DEVICE_TYPE`：`adb` / `hdc` / `ios`
 - `PHONE_AGENT_ENGINE`：`llm` / `cota`
 - `PHONE_AGENT_LANG`：`cn` / `en`
 - `PHONE_AGENT_WDA_URL`：iOS WDA URL（默认 `http://localhost:8100`）
+- `PHONE_AGENT_WDA_URLS`：iOS 多设备 WDA URL（逗号分隔）
 
 ## 目录结构
 
