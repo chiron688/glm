@@ -24,6 +24,15 @@ class SkillRegistry:
     def list(self) -> list[SkillDefinition]:
         return list(self.skills.values())
 
+    def list_by_level(self, level: int) -> list[SkillDefinition]:
+        return [skill for skill in self.skills.values() if skill.spec.get("level") == level]
+
+    def list_by_role(self, role: str) -> list[SkillDefinition]:
+        return [skill for skill in self.skills.values() if skill.spec.get("role") == role]
+
+    def list_by_owner(self, owner: str) -> list[SkillDefinition]:
+        return [skill for skill in self.skills.values() if skill.spec.get("owner") == owner]
+
     def load_from_paths(self, paths: Iterable[str | Path]) -> None:
         for path in paths:
             self._load_path(Path(path))

@@ -1,8 +1,8 @@
 schema_version: v1
-id: "publish_video_suite"
-name: "Publish Video Suite"
-version: "1.2.1"
-description: "High-risk publish workflow composed of sub-skills."
+id: "tiktok_upload_v2"
+name: "TikTok Upload v2"
+version: "2.0.0"
+description: "Flow skill to upload a video with checkpoints (uses existing publish sub-skills)."
 app:
   name: "TikTok"
   packages: ["com.zhiliaoapp.musically"]
@@ -16,7 +16,7 @@ routing:
   keywords:
     - "{{routing_publish_keywords}}"
   keyword_mode: any
-  priority: 20
+  priority: 30
   require_app: ["TikTok"]
 inputs:
   caption:

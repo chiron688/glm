@@ -4,6 +4,14 @@ name: "Permission Allow Popup"
 version: "1.2.1"
 description: "Dismiss permission popups by allowing access."
 risk: low
+level: 3
+role: recovery
+owner: system2
+routing:
+  keywords:
+    - "__recovery__"
+  keyword_mode: all
+  priority: 0
 vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort

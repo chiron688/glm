@@ -4,6 +4,14 @@ name: "Verification Flow"
 version: "1.1.2"
 description: "Handle captcha/verification with takeover."
 risk: medium
+level: 3
+role: recovery
+owner: system2
+routing:
+  keywords:
+    - "__recovery__"
+  keyword_mode: all
+  priority: 0
 vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort

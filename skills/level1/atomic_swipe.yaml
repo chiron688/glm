@@ -1,0 +1,27 @@
+schema_version: v1
+id: "atomic_swipe"
+name: "Atomic Swipe"
+version: "1.0.0"
+description: "Swipe between two coordinates using System1 primitives."
+risk: low
+level: 1
+role: atomic
+owner: system1
+inputs:
+  start:
+    type: array
+    required: true
+  end:
+    type: array
+    required: true
+steps:
+  - id: "swipe"
+    action: Swipe
+    start:
+      type: coords
+      coords: "{{start}}"
+      coords_type: relative
+    end:
+      type: coords
+      coords: "{{end}}"
+      coords_type: relative

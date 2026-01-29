@@ -1,0 +1,106 @@
+schema_version: v1
+id: "tiktok_nurture_browse_segment"
+name: "TikTok Nurture Browse Segment"
+version: "1.0.0"
+description: "Browse feed for a short segment; repeat externally for long sessions."
+app:
+  name: "TikTok"
+  packages: ["com.zhiliaoapp.musically"]
+platforms: ["adb", "hdc"]
+risk: low
+level: 2
+role: flow
+owner: system2
+routing:
+  keywords:
+    - "养号"
+    - "浏览"
+    - "刷视频"
+    - "nurture"
+    - "browse"
+  keyword_mode: any
+  priority: 10
+inputs:
+  pause:
+    type: string
+    default: "1.2 seconds"
+  swipe_duration_ms:
+    type: number
+    default: 450
+steps:
+  - id: "open_app"
+    action: Launch
+    app: "TikTok"
+  - id: "settle"
+    action: Wait
+    duration: "{{pause}}"
+  - id: "swipe_1"
+    action: Swipe
+    duration_ms: "{{swipe_duration_ms}}"
+    start:
+      type: coords
+      coords: [500, 820]
+      coords_type: relative
+    end:
+      type: coords
+      coords: [500, 220]
+      coords_type: relative
+  - id: "pause_1"
+    action: Wait
+    duration: "{{pause}}"
+  - id: "swipe_2"
+    action: Swipe
+    duration_ms: "{{swipe_duration_ms}}"
+    start:
+      type: coords
+      coords: [500, 820]
+      coords_type: relative
+    end:
+      type: coords
+      coords: [500, 220]
+      coords_type: relative
+  - id: "pause_2"
+    action: Wait
+    duration: "{{pause}}"
+  - id: "swipe_3"
+    action: Swipe
+    duration_ms: "{{swipe_duration_ms}}"
+    start:
+      type: coords
+      coords: [500, 820]
+      coords_type: relative
+    end:
+      type: coords
+      coords: [500, 220]
+      coords_type: relative
+  - id: "pause_3"
+    action: Wait
+    duration: "{{pause}}"
+  - id: "swipe_4"
+    action: Swipe
+    duration_ms: "{{swipe_duration_ms}}"
+    start:
+      type: coords
+      coords: [500, 820]
+      coords_type: relative
+    end:
+      type: coords
+      coords: [500, 220]
+      coords_type: relative
+  - id: "pause_4"
+    action: Wait
+    duration: "{{pause}}"
+  - id: "swipe_5"
+    action: Swipe
+    duration_ms: "{{swipe_duration_ms}}"
+    start:
+      type: coords
+      coords: [500, 820]
+      coords_type: relative
+    end:
+      type: coords
+      coords: [500, 220]
+      coords_type: relative
+  - id: "pause_5"
+    action: Wait
+    duration: "{{pause}}"

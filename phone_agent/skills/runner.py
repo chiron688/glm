@@ -793,6 +793,14 @@ class SkillRunner:
                 )
             action["start"] = self._absolute_to_relative(start, observation)
             action["end"] = self._absolute_to_relative(end, observation)
+            duration_ms = step.get("duration_ms")
+            if isinstance(duration_ms, int):
+                action["duration_ms"] = duration_ms
+            elif isinstance(duration_ms, str):
+                try:
+                    action["duration_ms"] = int(float(duration_ms))
+                except ValueError:
+                    pass
 
         elif action_name in {"Type", "Type_Name"}:
             action["text"] = step.get("text", "")

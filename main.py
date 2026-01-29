@@ -380,6 +380,9 @@ Examples:
     # Enable TCP/IP on USB device and get connection info
     python main.py --enable-tcpip
 
+    # Use COTA engine (Android/HarmonyOS)
+    python main.py --engine cota "上传视频到 TikTok"
+
     # List supported apps
     python main.py --list-apps
 
@@ -512,6 +515,14 @@ Examples:
         choices=["adb", "hdc", "ios"],
         default=os.getenv("PHONE_AGENT_DEVICE_TYPE", "adb"),
         help="Device type: adb for Android, hdc for HarmonyOS, ios for iPhone (default: adb)",
+    )
+
+    parser.add_argument(
+        "--engine",
+        type=str,
+        choices=["llm", "cota"],
+        default=os.getenv("PHONE_AGENT_ENGINE", "llm"),
+        help="Execution engine: llm (default) or cota",
     )
 
     parser.add_argument(
@@ -762,6 +773,8 @@ def main():
             lang=args.lang,
         )
 
+        if args.engine == "cota":
+            print("COTA engine is not available for iOS yet. Falling back to LLM engine.")
         agent = IOSPhoneAgent(
             model_config=model_config,
             agent_config=agent_config,
@@ -774,11 +787,19 @@ def main():
             verbose=not args.quiet,
             lang=args.lang,
         )
+        if args.engine == "cota":
+            from phone_agent.cota import COTAPhoneAgent, COTAConfig
 
-        agent = PhoneAgent(
-            model_config=model_config,
-            agent_config=agent_config,
-        )
+            agent = COTAPhoneAgent(
+                model_config=model_config,
+                agent_config=agent_config,
+                cota_config=COTAConfig(),
+            )
+        else:
+            agent = PhoneAgent(
+                model_config=model_config,
+                agent_config=agent_config,
+            )
 
     # Print header
     print("=" * 50)
@@ -792,6 +813,7 @@ def main():
     print(f"Max Steps: {agent_config.max_steps}")
     print(f"Language: {agent_config.lang}")
     print(f"Device Type: {args.device_type.upper()}")
+    print(f"Engine: {args.engine}")
 
     # Show iOS-specific config
     if device_type == DeviceType.IOS:

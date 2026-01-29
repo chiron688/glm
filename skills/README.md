@@ -7,6 +7,21 @@ This folder contains YAML skills and the schema that defines them.
 - `schema/skill.schema.yaml`: JSON Schema for skill definitions.
 - `common/vocab.yaml`: Shared regex vocabulary for selectors.
 - `examples/`: Example skills demonstrating retries, guards, and handlers.
+- `level1/`: Atomic skills intended for System1 execution.
+- `level2/`: Flow skills intended for System2 planning and System1 execution.
+- `level3/`: Recovery skills intended for System2 escalation.
+
+## COTA layering metadata
+
+Skills can declare optional metadata fields to participate in the COTA layered routing:
+
+- `level`: `1` (atomic), `2` (flow), `3` (recovery)
+- `role`: `atomic`, `flow`, `recovery`
+- `owner`: `system1` or `system2`
+- `latency_target_ms`, `sampling_hz`: optional performance hints
+
+Recovery-only skills should include a `routing` block that does not match normal tasks (e.g. a sentinel keyword)
+so they are invoked explicitly by System2 rather than the generic task router.
 
 ## Runtime usage
 

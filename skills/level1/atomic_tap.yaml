@@ -1,0 +1,20 @@
+schema_version: v1
+id: "atomic_tap"
+name: "Atomic Tap"
+version: "1.0.0"
+description: "Tap a coordinate using System1 primitives."
+risk: low
+level: 1
+role: atomic
+owner: system1
+inputs:
+  coords:
+    type: array
+    required: true
+steps:
+  - id: "tap"
+    action: Tap
+    target:
+      type: coords
+      coords: "{{coords}}"
+      coords_type: relative

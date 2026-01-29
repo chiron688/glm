@@ -6,7 +6,7 @@ Demonstrates how to use Phone Agent for phone automation tasks via Python API.
 演示如何通过 Python API 使用 Phone Agent 进行手机自动化任务。
 """
 
-from phone_agent import PhoneAgent
+from phone_agent import COTAPhoneAgent, COTAConfig, PhoneAgent
 from phone_agent.agent import AgentConfig
 from phone_agent.config import get_messages
 from phone_agent.model import ModelConfig
@@ -67,6 +67,36 @@ def example_with_callbacks(lang: str = "cn"):
 
     # Execute task that may require confirmation
     result = agent.run("打开淘宝搜索无线耳机并加入购物车")
+    print(f"{msgs['task_result']}: {result}")
+
+
+def example_cota_task(lang: str = "cn"):
+    """COTA task example / COTA 任务示例"""
+    msgs = get_messages(lang)
+
+    model_config = ModelConfig(
+        base_url="http://localhost:8000/v1",
+        model_name="autoglm-phone-9b",
+        temperature=0.1,
+    )
+
+    agent_config = AgentConfig(
+        max_steps=50,
+        verbose=True,
+        lang=lang,
+        skill_paths=["skills"],
+    )
+
+    cota_config = COTAConfig()
+    cota_config.system2.enable_vlm_recovery = True
+
+    agent = COTAPhoneAgent(
+        model_config=model_config,
+        agent_config=agent_config,
+        cota_config=cota_config,
+    )
+
+    result = agent.run("上传视频到 TikTok")
     print(f"{msgs['task_result']}: {result}")
 
 

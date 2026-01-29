@@ -1,0 +1,18 @@
+schema_version: v1
+id: "adapt_ui_change"
+name: "Adapt UI Change"
+version: "1.0.0"
+description: "Fallback recovery when UI changes are detected."
+risk: medium
+level: 3
+role: recovery
+owner: system2
+routing:
+  keywords:
+    - "__recovery__"
+  keyword_mode: all
+  priority: 0
+steps:
+  - id: "take_over"
+    action: Take_over
+    message: "UI layout changed. Please adjust the screen and continue."

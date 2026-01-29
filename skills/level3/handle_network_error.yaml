@@ -1,0 +1,18 @@
+schema_version: v1
+id: "handle_network_error"
+name: "Handle Network Error"
+version: "1.0.0"
+description: "Recovery for network-related errors."
+risk: medium
+level: 3
+role: recovery
+owner: system2
+routing:
+  keywords:
+    - "__recovery__"
+  keyword_mode: all
+  priority: 0
+steps:
+  - id: "take_over"
+    action: Take_over
+    message: "Network error detected. Please recover connectivity and continue."

@@ -6,6 +6,9 @@ description: "Verify publish success state."
 app:
   name: "TikTok"
 risk: high
+level: 2
+role: flow
+owner: system2
 vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort

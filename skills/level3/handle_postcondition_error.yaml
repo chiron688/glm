@@ -1,0 +1,18 @@
+schema_version: v1
+id: "handle_postcondition_error"
+name: "Handle Postcondition Error"
+version: "1.0.0"
+description: "Recovery when a postcondition check fails."
+risk: medium
+level: 3
+role: recovery
+owner: system2
+routing:
+  keywords:
+    - "__recovery__"
+  keyword_mode: all
+  priority: 0
+steps:
+  - id: "take_over"
+    action: Take_over
+    message: "Postcondition failed. Please verify the UI state and continue."

@@ -1,0 +1,17 @@
+schema_version: v1
+id: "atomic_type"
+name: "Atomic Type"
+version: "1.0.0"
+description: "Type text using System1 primitives."
+risk: low
+level: 1
+role: atomic
+owner: system1
+inputs:
+  text:
+    type: string
+    required: true
+steps:
+  - id: "type"
+    action: Type
+    text: "{{text}}"

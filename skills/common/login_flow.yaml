@@ -4,6 +4,14 @@ name: "Login Flow"
 version: "1.2.2"
 description: "Generic login flow with user takeover."
 risk: medium
+level: 3
+role: recovery
+owner: system2
+routing:
+  keywords:
+    - "__recovery__"
+  keyword_mode: all
+  priority: 0
 vocab_path: "skills/common/vocab.yaml"
 preconditions:
   mode: best_effort

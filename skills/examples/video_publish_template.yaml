@@ -9,6 +9,9 @@ app:
     - "com.zhiliaoapp.musically"
 platforms: ["adb"]
 risk: high
+level: 2
+role: flow
+owner: system2
 vocab_path: "skills/common/vocab.yaml"
 vars:
   default_caption: ""

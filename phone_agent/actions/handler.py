@@ -183,8 +183,21 @@ class ActionHandler:
         start_x, start_y = self._convert_relative_to_absolute(start, width, height)
         end_x, end_y = self._convert_relative_to_absolute(end, width, height)
 
+        duration_ms = action.get("duration_ms")
+        if isinstance(duration_ms, str):
+            try:
+                duration_ms = int(float(duration_ms))
+            except ValueError:
+                duration_ms = None
         device_factory = get_device_factory()
-        device_factory.swipe(start_x, start_y, end_x, end_y, device_id=self.device_id)
+        device_factory.swipe(
+            start_x,
+            start_y,
+            end_x,
+            end_y,
+            duration_ms=duration_ms,
+            device_id=self.device_id,
+        )
         return ActionResult(True, False)
 
     def _handle_back(self, action: dict, width: int, height: int) -> ActionResult:

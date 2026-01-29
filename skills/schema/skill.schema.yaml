@@ -34,6 +34,19 @@ properties:
   risk:
     type: string
     enum: [low, medium, high]
+  level:
+    type: integer
+    enum: [1, 2, 3]
+  role:
+    type: string
+    enum: [atomic, flow, recovery]
+  owner:
+    type: string
+    enum: [system1, system2]
+  latency_target_ms:
+    type: integer
+  sampling_hz:
+    type: number
   vars:
     type: object
     additionalProperties: true
