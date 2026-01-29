@@ -45,7 +45,7 @@ def get_ui_tree(device_id: str | None = None, timeout: int = 10) -> str | None:
 
     Returns None if the dump fails or is unavailable.
     """
-    # 关键步骤：获取uitree
+    # 关键步骤：调用 uiautomator dump 并读取 XML
     adb_prefix = _get_adb_prefix(device_id)
     remote_path = "/sdcard/uidump.xml"
     try:
@@ -83,7 +83,7 @@ def tap(
         device_id: 可选的 ADB 设备 ID。
         delay: 点击后的延迟（秒）。为 None 时使用默认配置。
     """
-    # 关键步骤：点击ADB 设备控制相关逻辑
+    # 关键步骤：通过 adb input tap 发送点击指令
     if delay is None:
         delay = TIMING_CONFIG.device.default_tap_delay
 
@@ -107,7 +107,7 @@ def double_tap(
         device_id: 可选的 ADB 设备 ID。
         delay: 双击后的延迟（秒）。为 None 时使用默认配置。
     """
-    # 关键步骤：双击tap
+    # 关键步骤：连续两次 tap 并加入间隔
     if delay is None:
         delay = TIMING_CONFIG.device.default_double_tap_delay
 
@@ -140,7 +140,7 @@ def long_press(
         device_id: 可选的 ADB 设备 ID。
         delay: 长按后的延迟（秒）。为 None 时使用默认配置。
     """
-    # 关键步骤：长按press
+    # 关键步骤：用 swipe 模拟长按持续时间
     if delay is None:
         delay = TIMING_CONFIG.device.default_long_press_delay
 
@@ -175,7 +175,7 @@ def swipe(
         device_id: 可选的 ADB 设备 ID。
         delay: 滑动后的延迟（秒）。为 None 时使用默认配置。
     """
-    # 关键步骤：滑动ADB 设备控制相关逻辑
+    # 关键步骤：通过 adb input swipe 执行滑动
     if delay is None:
         delay = TIMING_CONFIG.device.default_swipe_delay
 
@@ -212,7 +212,7 @@ def back(device_id: str | None = None, delay: float | None = None) -> None:
         device_id: 可选的 ADB 设备 ID。
         delay: 返回后的延迟（秒）。为 None 时使用默认配置。
     """
-    # 关键步骤：返回ADB 设备控制相关逻辑
+    # 关键步骤：发送 KEYCODE_BACK
     if delay is None:
         delay = TIMING_CONFIG.device.default_back_delay
 
@@ -232,7 +232,7 @@ def home(device_id: str | None = None, delay: float | None = None) -> None:
         device_id: 可选的 ADB 设备 ID。
         delay: 按下后的延迟（秒）。为 None 时使用默认配置。
     """
-    # 关键步骤：主页ADB 设备控制相关逻辑
+    # 关键步骤：发送 KEYCODE_HOME
     if delay is None:
         delay = TIMING_CONFIG.device.default_home_delay
 
@@ -287,7 +287,7 @@ def launch_app(
 
 def _get_adb_prefix(device_id: str | None) -> list:
     """获取 ADB 命令前缀（可选设备参数）。"""
-    # 关键步骤：获取ADBprefix
+    # 关键步骤：根据 device_id 拼接 adb 前缀
     if device_id:
         return ["adb", "-s", device_id]
     return ["adb"]

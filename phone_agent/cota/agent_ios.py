@@ -17,6 +17,7 @@ import os
 from phone_agent.skills import (
     IOSObservationProvider,
     build_ocr_provider,
+    SkillLearningRecorder,
     SkillRegistry,
     SkillRunner,
     SkillRunnerConfig,
@@ -71,6 +72,7 @@ class COTAIOSAgent:
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or COTAIOSAgentConfig()
         self.cota_config = cota_config or COTAConfig()
+        self.learning_recorder = SkillLearningRecorder.from_env()
 
         # Ensure WDA session
         self.wda_connection = XCTestConnection(wda_url=self.agent_config.wda_url)
@@ -140,6 +142,7 @@ class COTAIOSAgent:
                 device_id=self.agent_config.device_id,
                 action_handler=self.action_handler,
                 observer=observer,
+                learning_recorder=self.learning_recorder,
             )
 
         self.skill_router = skill_router
@@ -171,6 +174,7 @@ class COTAIOSAgent:
             skill_router=self.skill_router,
             llm_agent=None,
             vlm_analyzer=vlm_analyzer,
+            learning_recorder=self.learning_recorder,
         )
 
         self.coordinator = COTACoordinator(

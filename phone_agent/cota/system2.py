@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from phone_agent.skills.errors import SkillError
+from phone_agent.skills.learning import SkillLearningRecorder
 from phone_agent.skills.registry import SkillRegistry
 from phone_agent.skills.router import SkillRouter
 
@@ -29,6 +30,7 @@ class SlowPlannerSystem:
         skill_router: SkillRouter | None = None,
         llm_agent: Any | None = None,
         vlm_analyzer: VLMExceptionAnalyzer | None = None,
+        learning_recorder: SkillLearningRecorder | None = None,
     ) -> None:
         """初始化 System2 规划器，注入路由、技能与 VLM 分析能力。"""
         # 关键步骤：准备规划依赖（System2 规划）
@@ -37,6 +39,7 @@ class SlowPlannerSystem:
         self.skill_router = skill_router
         self.llm_agent = llm_agent
         self.vlm_analyzer = vlm_analyzer
+        self.learning_recorder = learning_recorder
 
     def plan(self, task: str, observation: Any | None) -> Plan:
         """根据任务与观察生成计划步骤（优先 Skills）。"""
@@ -55,6 +58,21 @@ class SlowPlannerSystem:
                     blocked=True,
                     blocked_reason=decision.reason,
                 )
+            if decision.action == "shadow" and decision.directive:
+                if self.learning_recorder:
+                    self.learning_recorder.record_shadow_match(
+                        task=task,
+                        observation=observation,
+                        skill_id=decision.directive.skill_id,
+                        reason=decision.reason or "shadow-match",
+                    )
+                return Plan(
+                    task=task,
+                    steps=[],
+                    reason="shadow",
+                    blocked=True,
+                    blocked_reason="shadow-match",
+                )
             if decision.action == "skill" and decision.directive:
                 return Plan(
                     task=task,
@@ -70,6 +88,13 @@ class SlowPlannerSystem:
                     reason=decision.reason,
                 )
 
+        if self.learning_recorder:
+            self.learning_recorder.record_case(
+                task=task,
+                reason="no_skill_match",
+                observation=observation,
+                extra={"route_reason": "no_skill_match"},
+            )
         return Plan(
             task=task,
             steps=[],

@@ -12,6 +12,7 @@ from phone_agent.actions import ActionHandler
 from phone_agent.skills.common_handlers import load_common_handlers
 from phone_agent.skills.conditions import evaluate_condition
 from phone_agent.skills.errors import SkillError, SkillErrorCode
+from phone_agent.skills.learning import SkillLearningRecorder
 from phone_agent.skills.observation import (
     Observation,
     ObservationProvider,
@@ -73,6 +74,7 @@ class SkillRunner:
         device_id: str | None = None,
         action_handler: ActionHandler | None = None,
         observer: ObservationProvider | None = None,
+        learning_recorder: SkillLearningRecorder | None = None,
     ) -> None:
         """初始化SkillRunner，准备技能执行所需的依赖、状态与默认配置。"""
         # 关键步骤：初始化（技能执行）
@@ -81,6 +83,7 @@ class SkillRunner:
         self.device_id = device_id
         self.action_handler = action_handler or ActionHandler(device_id=device_id)
         self.observer = observer or self._build_observer()
+        self.learning_recorder = learning_recorder
 
     def _build_observer(self):
         """用于技能执行，构建观察器。"""
@@ -114,6 +117,12 @@ class SkillRunner:
                 ended_at=time.time(),
                 inputs=inputs or {},
             )
+            self._record_failure(
+                task=f"skill:{skill_id}",
+                observation=None,
+                error=error,
+                report=report,
+            )
             return SkillRunResult(False, error.message, error, report)
 
         try:
@@ -129,6 +138,12 @@ class SkillRunner:
                 started_at=time.time(),
                 ended_at=time.time(),
                 inputs=inputs or {},
+            )
+            self._record_failure(
+                task=f"skill:{skill_id}",
+                observation=None,
+                error=error,
+                report=report,
             )
             return SkillRunResult(False, error.message, error, report)
         spec = render_templates(skill.spec, variables)
@@ -168,6 +183,12 @@ class SkillRunner:
                 observation=observation,
             )
             report.ended_at = time.time()
+            self._record_failure(
+                task=f"skill:{skill_id}",
+                observation=observation,
+                error=outcome.error or error,
+                report=report,
+            )
             return SkillRunResult(
                 success=False,
                 message=outcome.error.message if outcome.error else error.message,
@@ -183,6 +204,12 @@ class SkillRunner:
             step_report.success = success
             if not success:
                 report.ended_at = time.time()
+                self._record_failure(
+                    task=f"skill:{skill_id}",
+                    observation=observation,
+                    error=error,
+                    report=report,
+                )
                 return SkillRunResult(
                     success=False,
                     message=error.message if error else "Step failed",
@@ -209,6 +236,12 @@ class SkillRunner:
                 observation=observation,
             )
             report.ended_at = time.time()
+            self._record_failure(
+                task=f"skill:{skill_id}",
+                observation=observation,
+                error=outcome.error or error,
+                report=report,
+            )
             return SkillRunResult(
                 success=False,
                 message=outcome.error.message if outcome.error else error.message,
@@ -1003,3 +1036,48 @@ class SkillRunner:
             max_ms=retry_policy.max_backoff_ms or retry_policy.backoff_ms,
             jitter_ms=retry_policy.jitter_ms,
         )
+
+    def _record_failure(
+        self,
+        task: str,
+        observation: Observation | None,
+        error: SkillError | None,
+        report: SkillRunReport,
+    ) -> None:
+        """记录技能失败样本，供后续自迭代使用。"""
+        # 关键步骤：落盘失败样本（技能执行）
+        if not self.learning_recorder:
+            return
+        if error is None:
+            return
+        action_history = self._build_action_history(report)
+        self.learning_recorder.record_case(
+            task=task,
+            reason=error.code.value if error.code else "unknown_error",
+            observation=observation,
+            skill_id=report.skill_id,
+            step_id=error.step_id,
+            error_code=error.code.value if error.code else None,
+            error_message=error.message,
+            action_history=action_history,
+            extra={"inputs": report.inputs},
+        )
+
+    @staticmethod
+    def _build_action_history(report: SkillRunReport) -> list[dict[str, Any]]:
+        """从报告中抽取步骤动作历史。"""
+        # 关键步骤：整理动作历史（技能执行）
+        history: list[dict[str, Any]] = []
+        for step in report.steps:
+            if not step.attempts:
+                continue
+            attempt = step.attempts[-1]
+            history.append(
+                {
+                    "step_id": step.step_id,
+                    "action": attempt.action,
+                    "success": attempt.success,
+                    "error": attempt.error.code.value if attempt.error else None,
+                }
+            )
+        return history

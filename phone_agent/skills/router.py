@@ -27,6 +27,8 @@ class SkillRouterConfig:
     risk_first: bool = True
     min_score: int = 1
     allow_directive: bool = True
+    enable_shadow: bool = True
+    allow_shadow_execution: bool = False
     enforce_skill_whitelist: bool = False
     skill_whitelist: list[str] = field(default_factory=list)
     enforce_on_risk: bool = False
@@ -59,12 +61,33 @@ class SkillRouter:
         if directive:
             if self._is_blocked(directive.skill_id, task):
                 return RoutingDecision(action="block", reason="whitelist-block")
-            if self.registry.get(directive.skill_id):
+            skill = self.registry.get(directive.skill_id)
+            if skill:
+                if self._is_shadow(skill.spec) and not self.config.allow_shadow_execution:
+                    return RoutingDecision(action="shadow", directive=directive, reason="shadow-directive")
                 return RoutingDecision(action="skill", directive=directive, reason=directive.reason)
             return RoutingDecision(action="none")
 
         candidates: list[tuple[float, SkillDirective]] = []
+        shadow_candidates: list[tuple[float, SkillDirective]] = []
         for skill in self.registry.list():
+            if self._is_shadow(skill.spec):
+                if not self.config.enable_shadow:
+                    continue
+                score, reason = self._score_skill(skill.spec, task, observation)
+                if score >= self.config.min_score:
+                    shadow_candidates.append(
+                        (
+                            score,
+                            SkillDirective(
+                                skill_id=skill.skill_id,
+                                inputs={},
+                                reason=reason or "shadow-match",
+                            ),
+                        )
+                    )
+                if not self.config.allow_shadow_execution:
+                    continue
             score, reason = self._score_skill(skill.spec, task, observation)
             if score >= self.config.min_score:
                 candidates.append(
@@ -79,6 +102,10 @@ class SkillRouter:
                 )
 
         if not candidates:
+            if shadow_candidates:
+                shadow_candidates.sort(key=lambda item: item[0], reverse=True)
+                decision = shadow_candidates[0][1]
+                return RoutingDecision(action="shadow", directive=decision, reason=decision.reason)
             if self._risk_block(task):
                 return RoutingDecision(action="block", reason="risk-requires-skill")
             return RoutingDecision(action="none")
@@ -87,6 +114,16 @@ class SkillRouter:
         if self._is_blocked(decision.skill_id, task):
             return RoutingDecision(action="block", reason="whitelist-block")
         return RoutingDecision(action="skill", directive=decision, reason=decision.reason)
+
+    def _is_shadow(self, spec: dict[str, Any]) -> bool:
+        """判断技能是否处于 shadow 状态。"""
+        # 关键判断：是否标记为 shadow
+        if spec.get("status") == "shadow":
+            return True
+        routing = spec.get("routing", {})
+        if isinstance(routing, dict) and routing.get("shadow") is True:
+            return True
+        return False
 
     def _parse_directive(self, task: str) -> SkillDirective | None:
         """用于技能路由，解析指令。"""

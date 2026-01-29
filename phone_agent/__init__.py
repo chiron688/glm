@@ -16,6 +16,7 @@ from phone_agent.skills import (
     SkillRunner,
     SkillRunnerConfig,
     SkillSchemaError,
+    SkillLearningRecorder,
     OcrProvider,
     TesseractOcrProvider,
 )
@@ -51,6 +52,7 @@ __all__ = [
     "SkillRunner",
     "SkillRunnerConfig",
     "SkillSchemaError",
+    "SkillLearningRecorder",
     "OcrProvider",
     "TesseractOcrProvider",
 ]

@@ -26,8 +26,8 @@ class IOSAgentConfig:
     verbose: bool = True
 
     def __post_init__(self):
-        """执行 __post_init__ 相关逻辑。"""
-        # 处理 __post_init__ 的主要逻辑
+        """补齐系统提示词的默认值。"""
+        # 关键步骤：补齐系统提示词，确保首轮提示内容完整
         if self.system_prompt is None:
             self.system_prompt = get_system_prompt(self.lang)
 
@@ -72,8 +72,8 @@ class IOSPhoneAgent:
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
     ):
-        """执行 __init__ 相关逻辑。"""
-        # 处理 __init__ 的主要逻辑
+        """初始化 iOS Agent，建立模型与 WDA 控制链路。"""
+        # 关键步骤：初始化模型客户端、WDA 连接与动作执行器
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or IOSAgentConfig()
 
@@ -112,7 +112,7 @@ class IOSPhoneAgent:
         返回:
             Agent 的最终消息。
         """
-        # 处理 run 的主要逻辑
+        # 关键步骤：重置上下文并启动主执行循环
         self._context = []
         self._step_count = 0
 
@@ -143,7 +143,7 @@ class IOSPhoneAgent:
         返回:
             包含步骤详情的 StepResult。
         """
-        # 处理 step 的主要逻辑
+        # 关键步骤：校验首步输入并执行单步推理
         is_first = len(self._context) == 0
 
         if is_first and not task:
@@ -153,7 +153,7 @@ class IOSPhoneAgent:
 
     def reset(self) -> None:
         """为新任务重置 Agent 状态。"""
-        # 处理 reset 的主要逻辑
+        # 关键步骤：清空上下文与步数计数，准备新任务
         self._context = []
         self._step_count = 0
 
@@ -161,7 +161,7 @@ class IOSPhoneAgent:
         self, user_prompt: str | None = None, is_first: bool = False
     ) -> StepResult:
         """执行 Agent 循环中的单步。"""
-        # 处理 _execute_step 的主要逻辑
+        # 关键步骤：采集屏幕与当前应用，调用模型并执行动作
         self._step_count += 1
 
         # 获取当前屏幕状态
@@ -276,11 +276,11 @@ class IOSPhoneAgent:
     @property
     def context(self) -> list[dict[str, Any]]:
         """获取当前对话上下文。"""
-        # 处理 context 的主要逻辑
+        # 关键步骤：返回上下文副本，避免外部直接修改
         return self._context.copy()
 
     @property
     def step_count(self) -> int:
         """获取当前步骤计数。"""
-        # 处理 step_count 的主要逻辑
+        # 关键步骤：返回当前步数，便于调试与限步控制
         return self._step_count

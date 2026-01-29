@@ -26,6 +26,17 @@
   - `PHONE_AGENT_OCR_BASE_URL` / `PHONE_AGENT_OCR_API_KEY` / `PHONE_AGENT_OCR_MODEL`
 - UI 树采集已禁用，仅保留 OCR + 坐标路径。
 
+## 自迭代与 Shadow 技能
+
+- 失败场景会被记录为 Case Pack（`skills/_cases/`），包含截图、OCR 文本、错误码与动作历史。
+- 自动生成的技能会写入 `skills/shadow/`，并带有 `status: shadow` 标记。
+- 路由器会命中 shadow 技能但不执行（仅记录），待人工审核后再上线。
+
+生成示例（shadow）：
+```bash
+python scripts/skill_autogen.py skills/_cases/20260101/case_123456_000
+```
+
 ## 与其它模块关系
 - 由 `cota/system2.py` 进行路由与规划。
 - 由 `actions` 与设备控制层执行技能动作。

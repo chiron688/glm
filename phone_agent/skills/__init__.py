@@ -15,6 +15,7 @@ from phone_agent.skills.observation import (
 )
 from phone_agent.skills.observation_ios import IOSObservationProvider
 from phone_agent.skills.registry import SkillRegistry
+from phone_agent.skills.learning import SkillLearningRecorder
 from phone_agent.skills.router import SkillRouter, SkillRouterConfig
 from phone_agent.skills.runner import SkillRunner, SkillRunnerConfig
 from phone_agent.skills.schema import SkillDefinition, SkillSchemaError
@@ -24,6 +25,7 @@ __all__ = [
     "SkillError",
     "SkillErrorCode",
     "SkillRegistry",
+    "SkillLearningRecorder",
     "SkillRunner",
     "SkillRunnerConfig",
     "SkillRouter",

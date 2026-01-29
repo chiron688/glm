@@ -45,8 +45,8 @@ class AgentConfig:
     skill_risk_keywords: list[str] | None = None
 
     def __post_init__(self):
-        """执行 __post_init__ 相关逻辑。"""
-        # 处理 __post_init__ 的主要逻辑
+        """补齐系统提示词与风险关键词的默认值。"""
+        # 关键步骤：补齐系统提示词与风险关键词，确保技能路由的安全策略可用
         if self.system_prompt is None:
             self.system_prompt = get_system_prompt(self.lang)
         if self.skill_risk_keywords is None:
@@ -95,8 +95,8 @@ class PhoneAgent:
         skill_runner_config: SkillRunnerConfig | None = None,
         skill_router: SkillRouter | None = None,
     ):
-        """执行 __init__ 相关逻辑。"""
-        # 处理 __init__ 的主要逻辑
+        """初始化 PhoneAgent 并装配模型、动作处理器与技能组件。"""
+        # 关键步骤：初始化模型客户端、动作执行器与技能路由/执行组件
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or AgentConfig()
 
@@ -150,7 +150,7 @@ class PhoneAgent:
         返回:
             Agent 的最终消息。
         """
-        # 处理 run 的主要逻辑
+        # 关键步骤：重置上下文并驱动技能路由与主执行循环
         self._context = []
         self._step_count = 0
 
@@ -187,7 +187,7 @@ class PhoneAgent:
         返回:
             包含步骤详情的 StepResult。
         """
-        # 处理 step 的主要逻辑
+        # 关键步骤：校验首步输入并执行单步推理
         is_first = len(self._context) == 0
 
         if is_first and not task:
@@ -197,13 +197,13 @@ class PhoneAgent:
 
     def reset(self) -> None:
         """为新任务重置 Agent 状态。"""
-        # 处理 reset 的主要逻辑
+        # 关键步骤：清空上下文与步数计数，准备新任务
         self._context = []
         self._step_count = 0
 
     def _try_run_skill(self, task: str):
-        """执行 _try_run_skill 相关逻辑。"""
-        # 处理 _try_run_skill 的主要逻辑
+        """根据路由策略尝试执行技能或阻断高风险任务。"""
+        # 关键步骤：根据路由决策执行技能、阻断风险或跳过影子技能
         if not self.agent_config.enable_skill_routing:
             return None
         if self.skill_registry is None or self.skill_runner is None or self.skill_router is None:
@@ -238,6 +238,10 @@ class PhoneAgent:
             )
         if decision.action == "none":
             return None
+        if decision.action == "shadow":
+            if self.agent_config.verbose and decision.directive:
+                print(f"🧭 Shadow skill matched '{decision.directive.skill_id}', skipping execution")
+            return None
         if self.agent_config.verbose:
             print(f"🧭 Skill routing to '{decision.directive.skill_id}' ({decision.reason})")
         return self.skill_runner.run(decision.directive.skill_id, decision.directive.inputs)
@@ -246,7 +250,7 @@ class PhoneAgent:
         self, user_prompt: str | None = None, is_first: bool = False
     ) -> StepResult:
         """执行 Agent 循环中的单步。"""
-        # 处理 _execute_step 的主要逻辑
+        # 关键步骤：采集屏幕、请求模型、解析动作并执行
         self._step_count += 1
 
         # 获取当前屏幕状态
@@ -355,11 +359,11 @@ class PhoneAgent:
     @property
     def context(self) -> list[dict[str, Any]]:
         """获取当前对话上下文。"""
-        # 处理 context 的主要逻辑
+        # 关键步骤：返回上下文副本，避免外部直接修改
         return self._context.copy()
 
     @property
     def step_count(self) -> int:
         """获取当前步骤计数。"""
-        # 处理 step_count 的主要逻辑
+        # 关键步骤：返回当前步数，便于调试与限步控制
         return self._step_count

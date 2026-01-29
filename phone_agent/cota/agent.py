@@ -10,6 +10,7 @@ from phone_agent.agent import AgentConfig
 from phone_agent.model import ModelConfig
 from phone_agent.skills import (
     build_ocr_provider,
+    SkillLearningRecorder,
     SkillRegistry,
     SkillRunner,
     SkillRunnerConfig,
@@ -43,6 +44,7 @@ class COTAPhoneAgent:
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or AgentConfig()
         self.cota_config = cota_config or COTAConfig()
+        self.learning_recorder = SkillLearningRecorder.from_env()
 
         self.action_handler = ActionHandler(
             device_id=self.agent_config.device_id,
@@ -90,6 +92,7 @@ class COTAPhoneAgent:
                 config=runner_config,
                 device_id=self.agent_config.device_id,
                 action_handler=self.action_handler,
+                learning_recorder=self.learning_recorder,
             )
 
         self.skill_router = skill_router
@@ -119,6 +122,7 @@ class COTAPhoneAgent:
             skill_router=self.skill_router,
             llm_agent=None,
             vlm_analyzer=vlm_analyzer,
+            learning_recorder=self.learning_recorder,
         )
 
         self.coordinator = COTACoordinator(

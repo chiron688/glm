@@ -1,4 +1,4 @@
-"""Multi-device cluster runner for COTA agents."""
+"""COTA 多设备集群执行器。"""
 
 from __future__ import annotations
 
@@ -31,8 +31,8 @@ class ClusterRunner:
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
     ) -> None:
-        """执行 __init__ 相关逻辑。"""
-        # 处理 __init__ 的主要逻辑
+        """初始化集群执行器并保存设备端点与运行配置。"""
+        # 关键步骤：保存设备端点、模型与 COTA 配置，供后续调度
         self.endpoints = endpoints
         self.model_config = model_config
         self.cota_config = cota_config
@@ -43,15 +43,15 @@ class ClusterRunner:
         self.takeover_callback = takeover_callback
 
     def run(self, task: str) -> dict[str, str]:
-        """执行 run 相关逻辑。"""
-        # 处理 run 的主要逻辑
+        """按并行或串行策略调度任务。"""
+        # 关键步骤：根据并行开关选择执行策略
         if self.parallel and len(self.endpoints) > 1:
             return self._run_parallel(task)
         return self._run_sequential(task)
 
     def _run_parallel(self, task: str) -> dict[str, str]:
-        """执行 _run_parallel 相关逻辑。"""
-        # 处理 _run_parallel 的主要逻辑
+        """并行调度多设备执行任务，并汇总结果。"""
+        # 关键步骤：使用线程池并发执行每个端点
         results: dict[str, str] = {}
         with ThreadPoolExecutor(max_workers=len(self.endpoints)) as executor:
             future_map = {
@@ -68,8 +68,8 @@ class ClusterRunner:
         return results
 
     def _run_sequential(self, task: str) -> dict[str, str]:
-        """执行 _run_sequential 相关逻辑。"""
-        # 处理 _run_sequential 的主要逻辑
+        """串行遍历所有端点，逐个执行任务。"""
+        # 关键步骤：依次执行端点任务，保持设备隔离
         results: dict[str, str] = {}
         for endpoint in self.endpoints:
             key = endpoint.device_id or endpoint.wda_url or "unknown"
@@ -80,8 +80,8 @@ class ClusterRunner:
         return results
 
     def _run_on_endpoint(self, endpoint: DeviceEndpoint, task: str) -> str:
-        """执行 _run_on_endpoint 相关逻辑。"""
-        # 处理 _run_on_endpoint 的主要逻辑
+        """针对单一设备端点创建对应 Agent 并执行任务。"""
+        # 关键步骤：根据设备类型选择 iOS 或 Android 的 COTA Agent
         if endpoint.device_type == DeviceType.IOS:
             agent_config = replace(
                 self.ios_agent_config,
