@@ -23,6 +23,8 @@ class VLMAnalyzerConfig:
 
     @classmethod
     def from_model_config(cls, model_config: ModelConfig) -> "VLMAnalyzerConfig":
+        """从 ModelConfig 构建 VLM 分析配置。"""
+        # 关键步骤：映射模型配置（VLM 异常分析）
         return cls(
             base_url=model_config.base_url,
             api_key=model_config.api_key,
@@ -46,6 +48,8 @@ class VLMAnalysis:
 
 class VLMExceptionAnalyzer:
     def __init__(self, config: VLMAnalyzerConfig) -> None:
+        """初始化 VLM 异常分析器并创建模型客户端。"""
+        # 关键步骤：创建 VLM 客户端（VLM 异常分析）
         self.config = config
         self.client = OpenAI(base_url=config.base_url, api_key=config.api_key)
 
@@ -55,6 +59,8 @@ class VLMExceptionAnalyzer:
         error: Any,
         recovery_skills: list[str],
     ) -> VLMAnalysis | None:
+        """将截图与错误上下文发送给 VLM 并解析诊断结果。"""
+        # 关键步骤：请求 VLM 并解析响应（VLM 异常分析）
         if observation is None or not getattr(observation, "screenshot", None):
             return None
         base64_data = getattr(observation.screenshot, "base64_data", None)
@@ -124,6 +130,8 @@ class VLMExceptionAnalyzer:
 
 
 def _extract_json(text: str) -> dict[str, Any] | None:
+    """从模型输出中提取 JSON 结构。"""
+    # 关键步骤：解析 JSON 片段（VLM 异常分析）
     if not text:
         return None
     text = text.strip()
@@ -151,6 +159,8 @@ def _extract_json(text: str) -> dict[str, Any] | None:
 
 
 def _to_float(value: Any) -> float:
+    """将输入值转换为 float，失败返回 0.0。"""
+    # 关键步骤：安全转换数值（VLM 异常分析）
     try:
         return float(value)
     except (TypeError, ValueError):

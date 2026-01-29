@@ -26,12 +26,14 @@ class DeviceFactory:
         参数:
             device_type: 要使用的设备类型（ADB 或 HDC）。
         """
+        # 处理 __init__ 的主要逻辑
         self.device_type = device_type
         self._module = None
 
     @property
     def module(self):
         """获取对应的设备模块（adb 或 hdc）。"""
+        # 处理 module 的主要逻辑
         if self._module is None:
             if self.device_type == DeviceType.ADB:
                 from phone_agent import adb
@@ -47,14 +49,17 @@ class DeviceFactory:
 
     def get_screenshot(self, device_id: str | None = None, timeout: int = 10):
         """获取设备截图。"""
+        # 处理 get_screenshot 的主要逻辑
         return self.module.get_screenshot(device_id, timeout)
 
     def get_current_app(self, device_id: str | None = None) -> str:
         """获取当前应用名称。"""
+        # 处理 get_current_app 的主要逻辑
         return self.module.get_current_app(device_id)
 
     def get_ui_tree(self, device_id: str | None = None, timeout: int = 10) -> str | None:
         """获取当前 UI 层级 XML（若支持）。"""
+        # 处理 get_ui_tree 的主要逻辑
         if hasattr(self.module, "get_ui_tree"):
             return self.module.get_ui_tree(device_id, timeout)
         return None
@@ -63,12 +68,14 @@ class DeviceFactory:
         self, x: int, y: int, device_id: str | None = None, delay: float | None = None
     ):
         """在坐标处点击。"""
+        # 处理 tap 的主要逻辑
         return self.module.tap(x, y, device_id, delay)
 
     def double_tap(
         self, x: int, y: int, device_id: str | None = None, delay: float | None = None
     ):
         """在坐标处双击。"""
+        # 处理 double_tap 的主要逻辑
         return self.module.double_tap(x, y, device_id, delay)
 
     def long_press(
@@ -80,6 +87,7 @@ class DeviceFactory:
         delay: float | None = None,
     ):
         """在坐标处长按。"""
+        # 处理 long_press 的主要逻辑
         return self.module.long_press(x, y, duration_ms, device_id, delay)
 
     def swipe(
@@ -93,46 +101,56 @@ class DeviceFactory:
         delay: float | None = None,
     ):
         """从起点滑动到终点。"""
+        # 处理 swipe 的主要逻辑
         return self.module.swipe(
             start_x, start_y, end_x, end_y, duration_ms, device_id, delay
         )
 
     def back(self, device_id: str | None = None, delay: float | None = None):
         """按下返回键。"""
+        # 处理 back 的主要逻辑
         return self.module.back(device_id, delay)
 
     def home(self, device_id: str | None = None, delay: float | None = None):
         """按下 Home 键。"""
+        # 处理 home 的主要逻辑
         return self.module.home(device_id, delay)
 
     def launch_app(
         self, app_name: str, device_id: str | None = None, delay: float | None = None
     ) -> bool:
         """启动应用。"""
+        # 处理 launch_app 的主要逻辑
         return self.module.launch_app(app_name, device_id, delay)
 
     def type_text(self, text: str, device_id: str | None = None):
         """输入文本。"""
+        # 处理 type_text 的主要逻辑
         return self.module.type_text(text, device_id)
 
     def clear_text(self, device_id: str | None = None):
         """清空文本。"""
+        # 处理 clear_text 的主要逻辑
         return self.module.clear_text(device_id)
 
     def detect_and_set_adb_keyboard(self, device_id: str | None = None) -> str:
         """检测并设置键盘。"""
+        # 处理 detect_and_set_adb_keyboard 的主要逻辑
         return self.module.detect_and_set_adb_keyboard(device_id)
 
     def restore_keyboard(self, ime: str, device_id: str | None = None):
         """恢复键盘。"""
+        # 处理 restore_keyboard 的主要逻辑
         return self.module.restore_keyboard(ime, device_id)
 
     def list_devices(self):
         """列出已连接设备。"""
+        # 处理 list_devices 的主要逻辑
         return self.module.list_devices()
 
     def get_connection_class(self):
         """获取连接类（ADBConnection 或 HDCConnection）。"""
+        # 处理 get_connection_class 的主要逻辑
         if self.device_type == DeviceType.ADB:
             from phone_agent.adb import ADBConnection
 
@@ -156,6 +174,7 @@ def set_device_type(device_type: DeviceType):
     参数:
         device_type: 要使用的设备类型（ADB 或 HDC）。
     """
+    # 处理 set_device_type 的主要逻辑
     global _device_factory
     _device_factory = DeviceFactory(device_type)
 
@@ -167,6 +186,7 @@ def get_device_factory() -> DeviceFactory:
     返回:
         设备工厂实例。
     """
+    # 处理 get_device_factory 的主要逻辑
     global _device_factory
     if _device_factory is None:
         _device_factory = DeviceFactory(DeviceType.ADB)  # 默认使用 ADB

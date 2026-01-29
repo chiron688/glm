@@ -17,7 +17,11 @@ _TEMPLATE_LIST_RE = re.compile(r"^\{\{(\w+)\}\}$")
 
 
 def render_string(value: str, variables: dict[str, Any]) -> str:
+    """渲染字符串模板，将 {{var}} 替换为变量值。"""
+    # 关键步骤：替换模板变量（通用工具）
     def replacer(match: re.Match[str]) -> str:
+        """将单个模板占位符替换为变量值。"""
+        # 关键步骤：输出占位符对应值（通用工具）
         key = match.group(1)
         if key in variables:
             return str(variables[key])
@@ -27,6 +31,8 @@ def render_string(value: str, variables: dict[str, Any]) -> str:
 
 
 def render_templates(obj: Any, variables: dict[str, Any]) -> Any:
+    """用于通用工具，渲染模板，涉及模板渲染。"""
+    # 关键步骤：渲染模板（通用工具）
     if isinstance(obj, str):
         match = _TEMPLATE_LIST_RE.match(obj.strip())
         if match:
@@ -42,15 +48,21 @@ def render_templates(obj: Any, variables: dict[str, Any]) -> Any:
 
 
 def deep_copy(obj: Any) -> Any:
+    """对对象执行深拷贝，避免引用共享。"""
+    # 关键步骤：深拷贝对象（通用工具）
     return deepcopy(obj)
 
 
 def decode_image_from_base64(base64_data: str) -> Image.Image:
+    """从 base64 解码图像并返回 PIL Image。"""
+    # 关键步骤：解码 base64 图像（通用工具）
     raw = base64.b64decode(base64_data)
     return Image.open(BytesIO(raw))
 
 
 def compute_ahash(image: Image.Image, hash_size: int = 8) -> str:
+    """计算图像的平均哈希（aHash）用于快速相似度比较。"""
+    # 关键步骤：生成 aHash 指纹（通用工具）
     grayscale = image.convert("L").resize((hash_size, hash_size))
     pixels = list(grayscale.getdata())
     avg = sum(pixels) / len(pixels)
@@ -60,6 +72,8 @@ def compute_ahash(image: Image.Image, hash_size: int = 8) -> str:
 
 
 def hamming_distance(hash_a: str, hash_b: str) -> int:
+    """计算两个哈希值的汉明距离。"""
+    # 关键步骤：计算哈希差异（通用工具）
     if len(hash_a) != len(hash_b):
         raise ValueError("Hash length mismatch")
     value_a = int(hash_a, 16)
@@ -74,6 +88,8 @@ def sleep_with_backoff(
     max_ms: int,
     jitter_ms: int,
 ) -> None:
+    """按指数退避 + 随机抖动策略等待。"""
+    # 关键步骤：退避等待（通用工具）
     delay = min(int(base_ms * (multiplier ** max(0, attempt - 1))), max_ms)
     if jitter_ms > 0:
         delay += random.randint(0, jitter_ms)

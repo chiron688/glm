@@ -52,6 +52,7 @@ class XCTestConnection:
             wda_url: WebDriverAgent 地址（默认: http://localhost:8100）。
                      网络设备使用 http://<device-ip>:8100
         """
+        # 关键步骤：初始化XCTestConnection，配置iOS 连接所需的参数与依赖
         self.wda_url = wda_url.rstrip("/")
 
     def list_devices(self) -> list[DeviceInfo]:
@@ -65,6 +66,7 @@ class XCTestConnection:
             需要安装 libimobiledevice。
             macOS 安装: brew install libimobiledevice
         """
+        # 关键步骤：列出已连接的 iOS 设备
         try:
             # 获取设备 UDID 列表
             result = subprocess.run(
@@ -122,6 +124,7 @@ class XCTestConnection:
         返回:
             设备详情字典。
         """
+        # 关键步骤：查询设备详细信息（型号、系统版本等）
         try:
             result = subprocess.run(
                 ["ideviceinfo", "-u", udid],
@@ -159,6 +162,7 @@ class XCTestConnection:
         返回:
             DeviceInfo 对象，未找到则返回 None。
         """
+        # 关键步骤：获取设备的基础信息
         devices = self.list_devices()
 
         if not devices:
@@ -183,6 +187,7 @@ class XCTestConnection:
         返回:
             已连接返回 True，否则返回 False。
         """
+        # 关键步骤：检查设备是否已连接
         devices = self.list_devices()
 
         if not devices:
@@ -203,6 +208,7 @@ class XCTestConnection:
         返回:
             WDA 可用返回 True，否则返回 False。
         """
+        # 关键步骤：检查 WDA 服务是否可用
         try:
             import requests
 
@@ -225,6 +231,7 @@ class XCTestConnection:
         返回:
             (success, session_id 或 error_message) 的元组。
         """
+        # 关键步骤：启动 WDA 会话
         try:
             import requests
 
@@ -259,6 +266,7 @@ class XCTestConnection:
         返回:
             状态字典，若不可用则返回 None。
         """
+        # 关键步骤：获取 WDA 状态信息
         try:
             import requests
 
@@ -281,6 +289,7 @@ class XCTestConnection:
         返回:
             (success, message) 的元组。
         """
+        # 关键步骤：执行 iOS 设备配对
         try:
             cmd = ["idevicepair"]
             if device_id:
@@ -314,6 +323,7 @@ class XCTestConnection:
         返回:
             设备名称字符串，未找到则返回 None。
         """
+        # 关键步骤：获取设备名称
         try:
             cmd = ["ideviceinfo"]
             if device_id:
@@ -339,6 +349,7 @@ class XCTestConnection:
             该方法仅检查是否需要重启 WDA。
             实际重启需要通过 Xcode 或其他方式在设备上重新运行 WDA。
         """
+        # 关键步骤：重启 WDA 服务
         if self.is_wda_ready():
             return True, "WDA is already running"
         else:
@@ -358,6 +369,7 @@ def quick_connect(wda_url: str = "http://localhost:8100") -> tuple[bool, str]:
     返回:
         (success, message) 的元组。
     """
+    # 关键步骤：快速检查 WDA 连接状态
     conn = XCTestConnection(wda_url=wda_url)
 
     # 检查是否有设备连接
@@ -378,5 +390,6 @@ def list_devices() -> list[DeviceInfo]:
     返回:
         DeviceInfo 对象列表。
     """
+    # 关键步骤：列出已连接的 iOS 设备
     conn = XCTestConnection()
     return conn.list_devices()

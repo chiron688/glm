@@ -28,10 +28,14 @@ class Observation:
 
     @property
     def width(self) -> int:
+        """返回截图宽度（像素）。"""
+        # 关键步骤：读取截图宽度（观察采集）
         return self.screenshot.width
 
     @property
     def height(self) -> int:
+        """返回截图高度（像素）。"""
+        # 关键步骤：读取截图高度（观察采集）
         return self.screenshot.height
 
 
@@ -51,6 +55,8 @@ class ObservationProvider:
         include_screen_hash: bool = True,
         ocr_provider: OcrProvider | None = None,
     ) -> None:
+        """初始化ObservationProvider，准备观察采集所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（观察采集）
         self.device_id = device_id
         self.include_ui_tree = include_ui_tree
         self.include_screen_hash = include_screen_hash
@@ -58,6 +64,8 @@ class ObservationProvider:
         self.device_factory = get_device_factory()
 
     def capture(self) -> Observation:
+        """用于观察采集，采集截图、应用与 OCR 文本。"""
+        # 关键步骤：采集截图、应用与 OCR 文本（观察采集）
         screenshot = self.device_factory.get_screenshot(self.device_id)
         app_name = self.device_factory.get_current_app(self.device_id)
         ui_tree = None
@@ -109,18 +117,24 @@ class ObservationProvider:
 
 class RecordingObservationProvider:
     def __init__(self, inner: ObservationProvider, record_dir: str | Path) -> None:
+        """初始化RecordingObservationProvider，准备观察采集所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（观察采集）
         self.inner = inner
         self.record_dir = Path(record_dir)
         self.record_dir.mkdir(parents=True, exist_ok=True)
         self.index = 0
 
     def capture(self) -> Observation:
+        """用于观察采集，采集截图、应用与 OCR 文本。"""
+        # 关键步骤：采集截图、应用与 OCR 文本（观察采集）
         observation = self.inner.capture()
         self.index += 1
         self._save_observation(observation, self.index)
         return observation
 
     def _save_observation(self, observation: Observation, index: int) -> None:
+        """用于观察采集，保存观测。"""
+        # 关键步骤：保存观测（观察采集）
         screenshot_file = self.record_dir / f"obs_{index:04d}.png"
         ui_tree_file = self.record_dir / f"obs_{index:04d}.xml"
         meta_file = self.record_dir / f"obs_{index:04d}.json"
@@ -155,6 +169,8 @@ class RecordingObservationProvider:
 
 class PlaybackObservationProvider:
     def __init__(self, playback_dir: str | Path) -> None:
+        """初始化PlaybackObservationProvider，准备观察采集所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（观察采集）
         self.playback_dir = Path(playback_dir)
         self.records = sorted(self.playback_dir.glob("obs_*.json"))
         self.index = 0
@@ -162,6 +178,8 @@ class PlaybackObservationProvider:
             raise ValueError(f"No recorded observations found in {self.playback_dir}")
 
     def capture(self) -> Observation:
+        """用于观察采集，采集截图、应用与 OCR 文本。"""
+        # 关键步骤：采集截图、应用与 OCR 文本（观察采集）
         if self.index >= len(self.records):
             raise IndexError("Playback observations exhausted")
         record_path = self.records[self.index]

@@ -10,20 +10,28 @@ from phone_agent.skills.utils import hamming_distance
 
 
 def _normalize_text(value: str) -> str:
+    """用于条件评估，归一化文本。"""
+    # 关键步骤：归一化文本（条件评估）
     return value.casefold().strip()
 
 
 def _match_text_list(texts: list[str], targets: list[str]) -> bool:
+    """用于条件评估，匹配文本列表。"""
+    # 关键步骤：匹配文本列表（条件评估）
     normalized = [_normalize_text(t) for t in texts]
     return all(_normalize_text(target) in normalized for target in targets)
 
 
 def _match_text_any(texts: list[str], targets: list[str]) -> bool:
+    """用于条件评估，匹配文本任意。"""
+    # 关键步骤：匹配文本任意（条件评估）
     normalized = [_normalize_text(t) for t in texts]
     return any(_normalize_text(target) in normalized for target in targets)
 
 
 def _match_text_contains(texts: list[str], targets: list[str]) -> bool:
+    """用于条件评估，匹配文本包含。"""
+    # 关键步骤：匹配文本包含（条件评估）
     normalized = [_normalize_text(t) for t in texts]
     return all(
         any(_normalize_text(target) in text for text in normalized)
@@ -32,6 +40,8 @@ def _match_text_contains(texts: list[str], targets: list[str]) -> bool:
 
 
 def _match_text_any_contains(texts: list[str], targets: list[str]) -> bool:
+    """用于条件评估，匹配文本任意包含。"""
+    # 关键步骤：匹配文本任意包含（条件评估）
     normalized = [_normalize_text(t) for t in texts]
     return any(
         any(_normalize_text(target) in text for text in normalized)
@@ -40,6 +50,8 @@ def _match_text_any_contains(texts: list[str], targets: list[str]) -> bool:
 
 
 def _match_regex_list(texts: list[str], patterns: list[str], require_all: bool) -> bool:
+    """用于条件评估，匹配正则列表。"""
+    # 关键步骤：匹配正则列表（条件评估）
     normalized = [_normalize_text(t) for t in texts]
     results = []
     for pattern in patterns:
@@ -53,6 +65,8 @@ def _match_regex_list(texts: list[str], patterns: list[str], require_all: bool) 
 
 
 def evaluate_condition(spec: dict[str, Any] | None, observation: Any) -> bool | None:
+    """用于条件评估，评估条件，用于条件判断。"""
+    # 关键步骤：评估条件（条件评估）
     if spec is None:
         return True
     if not isinstance(spec, dict):

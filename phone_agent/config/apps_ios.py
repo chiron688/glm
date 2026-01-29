@@ -212,6 +212,7 @@ def get_bundle_id(app_name: str) -> str | None:
     返回:
         iOS bundle ID，未找到则返回 None。
     """
+    # 关键步骤：获取bundleid
     return APP_PACKAGES_IOS.get(app_name)
 
 
@@ -225,6 +226,7 @@ def get_app_name(bundle_id: str) -> str | None:
     返回:
         应用显示名称，未找到则返回 None。
     """
+    # 关键步骤：获取appname
     for name, bid in APP_PACKAGES_IOS.items():
         if bid == bundle_id:
             return name
@@ -238,6 +240,7 @@ def list_supported_apps() -> list[str]:
     返回:
         应用名称列表。
     """
+    # 关键步骤：处理supportedapps
     return list(APP_PACKAGES_IOS.keys())
 
 
@@ -256,6 +259,7 @@ def check_app_installed(app_name: str, wda_url: str = "http://localhost:8100") -
         这里使用 iTunes API 获取应用信息。若需在设备上进行实际安装检查，
         需要使用 WDA 的应用列表能力或 URL Scheme 检查。
     """
+    # 关键步骤：处理appinstalled
     bundle_id = get_bundle_id(app_name)
     if not bundle_id:
         return False
@@ -289,6 +293,7 @@ def get_app_info_from_itunes(bundle_id: str) -> dict | None:
     返回:
         包含应用信息（名称、版本等）的字典，未找到则返回 None。
     """
+    # 关键步骤：获取app信息fromitunes
     try:
         import requests
 
@@ -319,6 +324,7 @@ def get_app_info_by_id(app_store_id: str) -> dict | None:
     返回:
         包含应用信息的字典，未找到则返回 None。
     """
+    # 关键步骤：获取app信息byid
     try:
         import requests
 

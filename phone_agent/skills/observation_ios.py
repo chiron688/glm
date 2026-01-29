@@ -21,6 +21,8 @@ class IOSObservationProvider:
         include_screen_hash: bool = True,
         ocr_provider: OcrProvider | None = None,
     ) -> None:
+        """初始化 IOSObservationProvider，准备 iOS 观察采集所需的依赖与默认配置。"""
+        # 关键步骤：初始化采集参数（iOS 观察采集）
         self.wda_url = wda_url
         self.session_id = session_id
         self.device_id = device_id
@@ -28,6 +30,8 @@ class IOSObservationProvider:
         self.ocr_provider = ocr_provider
 
     def capture(self) -> Observation:
+        """采集 iOS 截图、前台应用与 OCR 文本节点。"""
+        # 关键步骤：截图 + OCR + 应用信息（iOS 观察采集）
         screenshot = get_screenshot(
             wda_url=self.wda_url,
             session_id=self.session_id,

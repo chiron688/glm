@@ -43,12 +43,16 @@ class RoutingDecision:
 
 class SkillRouter:
     def __init__(self, registry: SkillRegistry, config: SkillRouterConfig | None = None) -> None:
+        """初始化SkillRouter，准备技能路由所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（技能路由）
         self.registry = registry
         self.config = config or SkillRouterConfig()
 
     def select(
         self, task: str, observation: Any | None = None
     ) -> RoutingDecision:
+        """用于技能路由，选择最匹配的技能。"""
+        # 关键步骤：选择最匹配的技能（技能路由）
         if not self.config.enabled:
             return RoutingDecision(action="none")
         directive = self._parse_directive(task) if self.config.allow_directive else None
@@ -85,6 +89,8 @@ class SkillRouter:
         return RoutingDecision(action="skill", directive=decision, reason=decision.reason)
 
     def _parse_directive(self, task: str) -> SkillDirective | None:
+        """用于技能路由，解析指令。"""
+        # 关键步骤：解析指令（技能路由）
         text = task.strip()
         if text.startswith("{") and text.endswith("}"):
             try:
@@ -113,6 +119,8 @@ class SkillRouter:
         return None
 
     def _score_skill(self, spec: dict[str, Any], task: str, observation: Any | None) -> tuple[float, str]:
+        """用于技能路由，评分技能。"""
+        # 关键步骤：评分技能（技能路由）
         routing = spec.get("routing", {}) if isinstance(spec.get("routing"), dict) else {}
         score = float(routing.get("priority", 0))
         reason = ""
@@ -178,6 +186,8 @@ class SkillRouter:
         return score, reason or "routing"
 
     def _expand_routing_list(self, values: Any, spec: dict[str, Any]) -> list[str] | Any:
+        """用于技能路由，展开路由列表，用于路由决策。"""
+        # 关键步骤：展开路由列表（技能路由）
         if not isinstance(values, list):
             return values
         vocab = self._load_vocab(spec)
@@ -195,6 +205,8 @@ class SkillRouter:
         return flattened
 
     def _load_vocab(self, spec: dict[str, Any]) -> dict[str, Any]:
+        """用于技能路由，加载词表。"""
+        # 关键步骤：加载词表（技能路由）
         vocab: dict[str, Any] = {}
         inline = spec.get("vocab")
         if isinstance(inline, dict):
@@ -212,6 +224,8 @@ class SkillRouter:
         return vocab
 
     def _risk_block(self, task: str) -> bool:
+        """基于风险关键词判断是否需要强制走技能。"""
+        # 关键步骤：风险关键词匹配（技能路由）
         if not self.config.enforce_on_risk:
             return False
         keywords = self.config.risk_keywords or []
@@ -219,6 +233,8 @@ class SkillRouter:
         return any(keyword.casefold() in lowered for keyword in keywords if keyword)
 
     def _is_blocked(self, skill_id: str, task: str) -> bool:
+        """判断技能是否因白名单或风险策略被阻断。"""
+        # 关键判断：是否触发阻断规则
         if self.config.enforce_skill_whitelist:
             if skill_id not in self.config.skill_whitelist:
                 return True

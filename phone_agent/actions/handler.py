@@ -38,6 +38,8 @@ class ActionHandler:
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
     ):
+        """初始化动作处理器，配置设备 ID 与回调函数。"""
+        # 关键步骤：初始化动作处理器，配置设备 ID 与回调函数
         self.device_id = device_id
         self.confirmation_callback = confirmation_callback or self._default_confirmation
         self.takeover_callback = takeover_callback or self._default_takeover
@@ -56,6 +58,7 @@ class ActionHandler:
         返回:
             ActionResult，表示是否成功以及是否结束。
         """
+        # 关键步骤：解析动作类型并分派到对应处理器执行
         action_type = action.get("_metadata")
 
         if action_type == "finish":
@@ -89,6 +92,7 @@ class ActionHandler:
 
     def _get_handler(self, action_name: str) -> Callable | None:
         """获取指定动作的处理方法。"""
+        # 关键步骤：根据动作名称返回处理函数
         handlers = {
             "Launch": self._handle_launch,
             "Tap": self._handle_tap,
@@ -111,12 +115,14 @@ class ActionHandler:
         self, element: list[int], screen_width: int, screen_height: int
     ) -> tuple[int, int]:
         """将相对坐标（0-1000）转换为绝对像素。"""
+        # 关键步骤：将 0-1000 的相对坐标转换为像素坐标
         x = int(element[0] / 1000 * screen_width)
         y = int(element[1] / 1000 * screen_height)
         return x, y
 
     def _handle_launch(self, action: dict, width: int, height: int) -> ActionResult:
         """处理应用启动动作。"""
+        # 关键步骤：启动指定应用并返回执行结果
         app_name = action.get("app")
         if not app_name:
             return ActionResult(False, False, "No app name specified")
@@ -129,6 +135,7 @@ class ActionHandler:
 
     def _handle_tap(self, action: dict, width: int, height: int) -> ActionResult:
         """处理点击动作。"""
+        # 关键步骤：执行点击动作，并在必要时触发敏感确认
         element = action.get("element")
         if not element:
             return ActionResult(False, False, "No element coordinates")
@@ -150,6 +157,7 @@ class ActionHandler:
 
     def _handle_type(self, action: dict, width: int, height: int) -> ActionResult:
         """处理文本输入动作。"""
+        # 关键步骤：切换输入法并输入文本内容
         text = action.get("text", "")
 
         device_factory = get_device_factory()
@@ -174,6 +182,7 @@ class ActionHandler:
 
     def _handle_swipe(self, action: dict, width: int, height: int) -> ActionResult:
         """处理滑动动作。"""
+        # 关键步骤：执行滑动动作并支持设置时长
         start = action.get("start")
         end = action.get("end")
 
@@ -202,18 +211,21 @@ class ActionHandler:
 
     def _handle_back(self, action: dict, width: int, height: int) -> ActionResult:
         """处理返回动作。"""
+        # 关键步骤：发送返回键事件
         device_factory = get_device_factory()
         device_factory.back(self.device_id)
         return ActionResult(True, False)
 
     def _handle_home(self, action: dict, width: int, height: int) -> ActionResult:
         """处理 Home 按钮动作。"""
+        # 关键步骤：发送主页键事件
         device_factory = get_device_factory()
         device_factory.home(self.device_id)
         return ActionResult(True, False)
 
     def _handle_double_tap(self, action: dict, width: int, height: int) -> ActionResult:
         """处理双击动作。"""
+        # 关键步骤：执行双击动作
         element = action.get("element")
         if not element:
             return ActionResult(False, False, "No element coordinates")
@@ -225,6 +237,7 @@ class ActionHandler:
 
     def _handle_long_press(self, action: dict, width: int, height: int) -> ActionResult:
         """处理长按动作。"""
+        # 关键步骤：执行长按动作并支持时长
         element = action.get("element")
         if not element:
             return ActionResult(False, False, "No element coordinates")
@@ -236,6 +249,7 @@ class ActionHandler:
 
     def _handle_wait(self, action: dict, width: int, height: int) -> ActionResult:
         """处理等待动作。"""
+        # 关键步骤：等待指定时长以保持节奏
         duration_str = action.get("duration", "1 seconds")
         try:
             duration = float(duration_str.replace("seconds", "").strip())
@@ -247,29 +261,34 @@ class ActionHandler:
 
     def _handle_takeover(self, action: dict, width: int, height: int) -> ActionResult:
         """处理接管请求（登录、验证码等）。"""
+        # 关键步骤：触发人工接管回调
         message = action.get("message", "User intervention required")
         self.takeover_callback(message)
         return ActionResult(True, False)
 
     def _handle_note(self, action: dict, width: int, height: int) -> ActionResult:
         """处理 Note 动作（内容记录的占位实现）。"""
+        # 关键步骤：处理备注动作（占位实现）
         # 该动作通常用于记录页面内容
         # 具体实现取决于实际需求
         return ActionResult(True, False)
 
     def _handle_call_api(self, action: dict, width: int, height: int) -> ActionResult:
         """处理 API 调用动作（摘要的占位实现）。"""
+        # 关键步骤：处理外部 API 调用动作（占位实现）
         # 该动作通常用于内容摘要
         # 具体实现取决于实际需求
         return ActionResult(True, False)
 
     def _handle_interact(self, action: dict, width: int, height: int) -> ActionResult:
         """处理交互请求（需要用户选择）。"""
+        # 关键步骤：处理需要用户交互的动作
         # 该动作表示需要用户输入
         return ActionResult(True, False, message="User interaction required")
 
     def _send_keyevent(self, keycode: str) -> None:
         """向设备发送 keyevent。"""
+        # 关键步骤：向设备发送按键事件
         from phone_agent.device_factory import DeviceType, get_device_factory
         from phone_agent.hdc.connection import _run_hdc_command
 
@@ -333,12 +352,14 @@ class ActionHandler:
     @staticmethod
     def _default_confirmation(message: str) -> bool:
         """使用控制台输入的默认确认回调。"""
+        # 关键步骤：默认敏感操作确认回调（控制台输入）
         response = input(f"Sensitive operation: {message}\nConfirm? (Y/N): ")
         return response.upper() == "Y"
 
     @staticmethod
     def _default_takeover(message: str) -> None:
         """使用控制台输入的默认接管回调。"""
+        # 关键步骤：默认人工接管回调（控制台等待）
         input(f"{message}\nPress Enter after completing manual operation...")
 
 
@@ -355,6 +376,7 @@ def parse_action(response: str) -> dict[str, Any]:
     异常:
         ValueError: 响应无法解析时抛出。
     """
+    # 关键步骤：从模型响应中解析动作 JSON
     print(f"Parsing action: {response}")
     try:
         response = response.strip()
@@ -377,7 +399,7 @@ def parse_action(response: str) -> dict[str, Any]:
                     raise ValueError("Expected a function call")
 
                 call = tree.body
-                # 安全地提取关键字参数
+                # 关键步骤：安全提取关键字参数
                 action = {"_metadata": "do"}
                 for keyword in call.keywords:
                     key = keyword.arg
@@ -402,11 +424,13 @@ def parse_action(response: str) -> dict[str, Any]:
 
 def do(**kwargs) -> dict[str, Any]:
     """用于创建 'do' 动作的辅助函数。"""
+    # 关键步骤：构造 do 动作字典
     kwargs["_metadata"] = "do"
     return kwargs
 
 
 def finish(**kwargs) -> dict[str, Any]:
     """用于创建 'finish' 动作的辅助函数。"""
+    # 关键步骤：构造 finish 动作字典
     kwargs["_metadata"] = "finish"
     return kwargs

@@ -31,6 +31,8 @@ class ClusterRunner:
         confirmation_callback: Callable[[str], bool] | None = None,
         takeover_callback: Callable[[str], None] | None = None,
     ) -> None:
+        """执行 __init__ 相关逻辑。"""
+        # 处理 __init__ 的主要逻辑
         self.endpoints = endpoints
         self.model_config = model_config
         self.cota_config = cota_config
@@ -41,11 +43,15 @@ class ClusterRunner:
         self.takeover_callback = takeover_callback
 
     def run(self, task: str) -> dict[str, str]:
+        """执行 run 相关逻辑。"""
+        # 处理 run 的主要逻辑
         if self.parallel and len(self.endpoints) > 1:
             return self._run_parallel(task)
         return self._run_sequential(task)
 
     def _run_parallel(self, task: str) -> dict[str, str]:
+        """执行 _run_parallel 相关逻辑。"""
+        # 处理 _run_parallel 的主要逻辑
         results: dict[str, str] = {}
         with ThreadPoolExecutor(max_workers=len(self.endpoints)) as executor:
             future_map = {
@@ -62,6 +68,8 @@ class ClusterRunner:
         return results
 
     def _run_sequential(self, task: str) -> dict[str, str]:
+        """执行 _run_sequential 相关逻辑。"""
+        # 处理 _run_sequential 的主要逻辑
         results: dict[str, str] = {}
         for endpoint in self.endpoints:
             key = endpoint.device_id or endpoint.wda_url or "unknown"
@@ -72,6 +80,8 @@ class ClusterRunner:
         return results
 
     def _run_on_endpoint(self, endpoint: DeviceEndpoint, task: str) -> str:
+        """执行 _run_on_endpoint 相关逻辑。"""
+        # 处理 _run_on_endpoint 的主要逻辑
         if endpoint.device_type == DeviceType.IOS:
             agent_config = replace(
                 self.ios_agent_config,

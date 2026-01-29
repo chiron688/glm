@@ -20,11 +20,15 @@ class UINode:
 
     @property
     def center(self) -> tuple[int, int]:
+        """返回节点边界框的中心点坐标。"""
+        # 关键步骤：计算中心点（元素选择）
         left, top, right, bottom = self.bounds
         return int((left + right) / 2), int((top + bottom) / 2)
 
     @property
     def area(self) -> int:
+        """返回节点边界框的面积。"""
+        # 关键步骤：计算面积（元素选择）
         left, top, right, bottom = self.bounds
         return max(0, right - left) * max(0, bottom - top)
 
@@ -33,6 +37,8 @@ _BOUNDS_RE = re.compile(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]")
 
 
 def _parse_bounds(bounds: str) -> tuple[int, int, int, int] | None:
+    """解析 bounds 字符串为 (left, top, right, bottom)。"""
+    # 关键步骤：解析边界框字符串（元素选择）
     if not bounds:
         return None
     match = _BOUNDS_RE.search(bounds)
@@ -43,6 +49,8 @@ def _parse_bounds(bounds: str) -> tuple[int, int, int, int] | None:
 
 
 def parse_uiautomator_xml(xml_str: str) -> list[UINode]:
+    """解析 uiautomator XML，生成 UINode 列表。"""
+    # 关键步骤：解析 XML 节点（元素选择）
     nodes: list[UINode] = []
     if not xml_str:
         return nodes
@@ -70,9 +78,13 @@ def parse_uiautomator_xml(xml_str: str) -> list[UINode]:
 
 
 def _parse_harmony_layout(data: Any) -> list[UINode]:
+    """解析 HarmonyOS 布局树，生成 UINode 列表。"""
+    # 关键步骤：解析布局树（元素选择）
     nodes: list[UINode] = []
 
     def walk(node: Any) -> None:
+        """递归遍历布局节点并提取 UI 信息。"""
+        # 关键步骤：递归遍历节点（元素选择）
         if not isinstance(node, dict):
             return
         attrs = node.get("attributes", {}) if isinstance(node.get("attributes"), dict) else {}
@@ -117,6 +129,8 @@ def _parse_harmony_layout(data: Any) -> list[UINode]:
 
 
 def parse_ui_dump(raw_text: str) -> list[UINode]:
+    """解析 UI Dump（XML/JSON）并生成节点列表。"""
+    # 关键步骤：识别格式并解析（元素选择）
     if not raw_text:
         return []
     text = raw_text.strip()
@@ -130,6 +144,8 @@ def parse_ui_dump(raw_text: str) -> list[UINode]:
 
 
 def extract_texts(nodes: list[UINode]) -> list[str]:
+    """提取节点文本与无障碍描述，用于 OCR 匹配。"""
+    # 关键步骤：汇总文本字段（元素选择）
     texts: list[str] = []
     for node in nodes:
         if node.text:
@@ -140,6 +156,8 @@ def extract_texts(nodes: list[UINode]) -> list[str]:
 
 
 def _match_text(value: str, target: str, mode: str) -> bool:
+    """按指定模式匹配文本（exact/contains/regex）。"""
+    # 关键步骤：执行文本匹配（元素选择）
     if mode == "exact":
         return value == target
     if mode == "contains":
@@ -153,6 +171,8 @@ def _match_text(value: str, target: str, mode: str) -> bool:
 
 
 def node_matches_selector(node: UINode, selector: dict[str, Any]) -> bool:
+    """判断节点是否满足 selector 的全部条件。"""
+    # 关键步骤：校验选择器条件（元素选择）
     match_mode = selector.get("match", "contains")
     if selector.get("text"):
         if not _match_text(node.text, selector["text"], match_mode):
@@ -172,10 +192,14 @@ def node_matches_selector(node: UINode, selector: dict[str, Any]) -> bool:
 
 
 def find_nodes(nodes: list[UINode], selector: dict[str, Any]) -> list[UINode]:
+    """筛选所有满足 selector 的节点。"""
+    # 关键步骤：过滤匹配节点（元素选择）
     return [node for node in nodes if node_matches_selector(node, selector)]
 
 
 def pick_best_node(nodes: list[UINode]) -> UINode | None:
+    """从候选节点中选择最合适的目标（可点击优先）。"""
+    # 关键步骤：选择最优节点（元素选择）
     if not nodes:
         return None
     # Prefer clickable nodes, then larger area.
@@ -185,6 +209,8 @@ def pick_best_node(nodes: list[UINode]) -> UINode | None:
 def resolve_selector_to_point(
     nodes: list[UINode], selector: dict[str, Any]
 ) -> tuple[int, int] | None:
+    """将 selector 解析为点击坐标点。"""
+    # 关键步骤：从节点解析坐标（元素选择）
     if selector.get("resource_id"):
         matches = [
             node

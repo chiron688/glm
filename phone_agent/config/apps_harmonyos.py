@@ -237,6 +237,7 @@ def get_package_name(app_name: str) -> str | None:
     返回:
         HarmonyOS bundle 名称，未找到则返回 None。
     """
+    # 关键步骤：获取packagename
     return APP_PACKAGES.get(app_name)
 
 
@@ -250,6 +251,7 @@ def get_app_name(package_name: str) -> str | None:
     返回:
         应用显示名称，未找到则返回 None。
     """
+    # 关键步骤：获取appname
     for name, package in APP_PACKAGES.items():
         if package == package_name:
             return name
@@ -263,4 +265,5 @@ def list_supported_apps() -> list[str]:
     返回:
         应用名称列表。
     """
+    # 关键步骤：处理supportedapps
     return list(APP_PACKAGES.keys())

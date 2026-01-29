@@ -25,7 +25,7 @@ from phone_agent.cota.vlm_analyzer import VLMAnalyzerConfig, VLMExceptionAnalyze
 
 
 class COTAPhoneAgent:
-    """Phone Agent with COTA dual-system coordination."""
+    """基于 COTA 双系统协同的手机代理。"""
 
     def __init__(
         self,
@@ -38,6 +38,8 @@ class COTAPhoneAgent:
         skill_runner_config: SkillRunnerConfig | None = None,
         skill_router: SkillRouter | None = None,
     ) -> None:
+        """初始化 COTA 代理，装配 Skills、System1/2 与协调器。"""
+        # 关键步骤：初始化依赖并装配系统（COTA 代理入口）
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or AgentConfig()
         self.cota_config = cota_config or COTAConfig()
@@ -127,13 +129,19 @@ class COTAPhoneAgent:
         )
 
     def run(self, task: str) -> str:
+        """执行任务，交由协调器推进计划与技能步骤。"""
+        # 关键步骤：委派到协调器执行（COTA 代理入口）
         return self.coordinator.run(task)
 
     def reset(self) -> None:
+        """COTA 代理无状态重置的占位接口。"""
+        # 关键步骤：重置占位（COTA 代理入口）
         return
 
     @property
     def skill_errors(self) -> list[str]:
+        """返回技能加载与解析时的错误列表。"""
+        # 关键步骤：汇总技能错误（COTA 代理入口）
         if not self.skill_registry:
             return []
         return self.skill_registry.errors

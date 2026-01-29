@@ -17,12 +17,16 @@ class COTACoordinator:
         skill_runner: Any | None = None,
         observer: Any | None = None,
     ) -> None:
+        """初始化协调器，注入 System1/2、技能执行与观察器。"""
+        # 关键步骤：装配双系统协同依赖
         self.system1 = system1
         self.system2 = system2
         self.skill_runner = skill_runner
         self.observer = observer or (skill_runner.observer if skill_runner else ObservationProvider())
 
     def run(self, task: str) -> str:
+        """用于双系统协同，执行计划步骤与恢复流程。"""
+        # 关键步骤：执行计划步骤与恢复流程（双系统协同）
         observation = self._safe_capture()
         plan = self.system2.plan(task, observation)
 
@@ -78,6 +82,8 @@ class COTACoordinator:
         return "Task completed"
 
     def _safe_capture(self):
+        """安全采集观察信息，失败时返回 None。"""
+        # 关键步骤：容错采集观察数据
         try:
             return self.observer.capture()
         except Exception:

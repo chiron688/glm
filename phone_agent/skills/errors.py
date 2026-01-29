@@ -36,6 +36,8 @@ class SkillError:
     exception: Exception | None = None
 
     def with_details(self, **kwargs: Any) -> "SkillError":
+        """合并并附加错误详情，返回新的错误对象。"""
+        # 关键步骤：合并 details 并生成新对象（错误模型）
         merged = dict(self.details or {})
         merged.update(kwargs)
         return SkillError(

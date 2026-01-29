@@ -51,6 +51,7 @@ class ADBConnection:
         参数:
             adb_path: ADB 可执行文件路径。
         """
+        # 关键步骤：初始化ADBConnection，配置ADB 连接所需的参数与依赖
         self.adb_path = adb_path
 
     def connect(self, address: str, timeout: int = 10) -> tuple[bool, str]:
@@ -68,6 +69,7 @@ class ADBConnection:
             远程设备需要开启 TCP/IP 调试。
             可在设备上执行: adb tcpip 5555
         """
+        # 关键步骤：通过 TCP/IP 连接到指定设备地址
         # 校验地址格式
         if ":" not in address:
             address = f"{address}:5555"  # 默认 ADB 端口
@@ -104,6 +106,7 @@ class ADBConnection:
         返回:
             (success, message) 的元组。
         """
+        # 关键步骤：断开远程设备连接
         try:
             cmd = [self.adb_path, "disconnect"]
             if address:
@@ -124,6 +127,7 @@ class ADBConnection:
         返回:
             DeviceInfo 对象列表。
         """
+        # 关键步骤：列出当前可用的 ADB 设备
         try:
             result = subprocess.run(
                 [self.adb_path, "devices", "-l"],
@@ -182,6 +186,7 @@ class ADBConnection:
         返回:
             DeviceInfo 对象，未找到则返回 None。
         """
+        # 关键步骤：获取设备的基本信息与状态
         devices = self.list_devices()
 
         if not devices:
@@ -206,6 +211,7 @@ class ADBConnection:
         返回:
             已连接返回 True，否则返回 False。
         """
+        # 关键步骤：检查设备是否已连接
         devices = self.list_devices()
 
         if not devices:
@@ -235,6 +241,7 @@ class ADBConnection:
             设备必须先通过 USB 连接。
             启用后可拔掉 USB，通过 WiFi 连接。
         """
+        # 关键步骤：开启设备 TCP/IP 调试模式
         try:
             cmd = [self.adb_path]
             if device_id:
@@ -264,6 +271,7 @@ class ADBConnection:
         返回:
             IP 地址字符串，未找到则返回 None。
         """
+        # 关键步骤：查询设备当前 IP 地址
         try:
             cmd = [self.adb_path]
             if device_id:
@@ -309,6 +317,7 @@ class ADBConnection:
         返回:
             (success, message) 的元组。
         """
+        # 关键步骤：重启 ADB 服务端
         try:
             # 终止服务
             subprocess.run(
@@ -338,6 +347,7 @@ def quick_connect(address: str) -> tuple[bool, str]:
     返回:
         (success, message) 的元组。
     """
+    # 关键步骤：快速连接到设备地址
     conn = ADBConnection()
     return conn.connect(address)
 
@@ -349,5 +359,6 @@ def list_devices() -> list[DeviceInfo]:
     返回:
         DeviceInfo 对象列表。
     """
+    # 关键步骤：列出当前可用的 ADB 设备
     conn = ADBConnection()
     return conn.list_devices()

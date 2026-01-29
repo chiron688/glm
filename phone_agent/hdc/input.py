@@ -22,6 +22,7 @@ def type_text(text: str, device_id: str | None = None) -> None:
         HarmonyOS 的 ENTER 键码为: 2054
         建议先点击输入框获取焦点，再使用此函数输入。
     """
+    # 关键步骤：输入文本内容
     hdc_prefix = _get_hdc_prefix(device_id)
 
     # 通过换行拆分来处理多行文本
@@ -74,6 +75,7 @@ def clear_text(device_id: str | None = None) -> None:
         该方法使用重复的删除键事件来清空文本。
         在 HarmonyOS 上也可使用全选 + 删除以提高效率。
     """
+    # 关键步骤：清空当前输入框内容
     hdc_prefix = _get_hdc_prefix(device_id)
     # Ctrl+A 全选（Ctrl 键码 2072，A 键码 2017）
     # 然后删除
@@ -103,6 +105,7 @@ def detect_and_set_adb_keyboard(device_id: str | None = None) -> str:
         这是一个占位实现。HarmonyOS 可能不支持 ADB Keyboard。
         若有类似工具可用，请在此集成。
     """
+    # 关键步骤：切换到 HDC 设备输入法
     hdc_prefix = _get_hdc_prefix(device_id)
 
     # 获取当前 IME（若 HarmonyOS 支持）
@@ -129,6 +132,7 @@ def restore_keyboard(ime: str, device_id: str | None = None) -> None:
         ime: 要恢复的 IME 标识符。
         device_id: 可选的 HDC 设备 ID（多设备场景）。
     """
+    # 关键步骤：恢复原输入法
     if not ime:
         return
 
@@ -144,6 +148,7 @@ def restore_keyboard(ime: str, device_id: str | None = None) -> None:
 
 def _get_hdc_prefix(device_id: str | None) -> list:
     """获取 HDC 命令前缀（可选设备参数）。"""
+    # 关键步骤：获取HDCprefix
     if device_id:
         return ["hdc", "-t", device_id]
     return ["hdc"]

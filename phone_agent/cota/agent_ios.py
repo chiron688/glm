@@ -46,12 +46,14 @@ class COTAIOSAgentConfig:
     ocr_lang: str = "ml"
 
     def __post_init__(self):
+        """补齐默认风险关键词，保证路由与风控可用。"""
+        # 关键步骤：设置默认风险关键词（iOS COTA 代理）
         if self.skill_risk_keywords is None:
             self.skill_risk_keywords = ["发布", "上传", "post", "upload", "publish"]
 
 
 class COTAIOSAgent:
-    """COTA-based iOS automation agent (WDA)."""
+    """基于 COTA 的 iOS 自动化代理（WDA）。"""
 
     def __init__(
         self,
@@ -64,6 +66,8 @@ class COTAIOSAgent:
         skill_runner_config: SkillRunnerConfig | None = None,
         skill_router: SkillRouter | None = None,
     ) -> None:
+        """初始化 iOS COTA 代理，构建 WDA、Skills 与双系统协同。"""
+        # 关键步骤：初始化依赖并装配系统（iOS COTA 代理）
         self.model_config = model_config or ModelConfig()
         self.agent_config = agent_config or COTAIOSAgentConfig()
         self.cota_config = cota_config or COTAConfig()
@@ -177,13 +181,19 @@ class COTAIOSAgent:
         )
 
     def run(self, task: str) -> str:
+        """执行任务，交由协调器推进计划与技能步骤。"""
+        # 关键步骤：委派到协调器执行（iOS COTA 代理）
         return self.coordinator.run(task)
 
     def reset(self) -> None:
+        """iOS COTA 为无状态重置预留接口。"""
+        # 关键步骤：重置占位（iOS COTA 代理）
         return
 
     @property
     def skill_errors(self) -> list[str]:
+        """返回技能加载与解析时的错误列表。"""
+        # 关键步骤：汇总技能错误（iOS COTA 代理）
         if not self.skill_registry:
             return []
         return self.skill_registry.errors

@@ -19,6 +19,7 @@ def get_current_app(device_id: str | None = None) -> str:
     返回:
         若可识别则返回应用名称，否则返回 "System Home"。
     """
+    # 关键步骤：获取当前前台应用包名
     adb_prefix = _get_adb_prefix(device_id)
 
     result = subprocess.run(
@@ -44,6 +45,7 @@ def get_ui_tree(device_id: str | None = None, timeout: int = 10) -> str | None:
 
     Returns None if the dump fails or is unavailable.
     """
+    # 关键步骤：获取uitree
     adb_prefix = _get_adb_prefix(device_id)
     remote_path = "/sdcard/uidump.xml"
     try:
@@ -81,6 +83,7 @@ def tap(
         device_id: 可选的 ADB 设备 ID。
         delay: 点击后的延迟（秒）。为 None 时使用默认配置。
     """
+    # 关键步骤：点击ADB 设备控制相关逻辑
     if delay is None:
         delay = TIMING_CONFIG.device.default_tap_delay
 
@@ -104,6 +107,7 @@ def double_tap(
         device_id: 可选的 ADB 设备 ID。
         delay: 双击后的延迟（秒）。为 None 时使用默认配置。
     """
+    # 关键步骤：双击tap
     if delay is None:
         delay = TIMING_CONFIG.device.default_double_tap_delay
 
@@ -136,6 +140,7 @@ def long_press(
         device_id: 可选的 ADB 设备 ID。
         delay: 长按后的延迟（秒）。为 None 时使用默认配置。
     """
+    # 关键步骤：长按press
     if delay is None:
         delay = TIMING_CONFIG.device.default_long_press_delay
 
@@ -170,6 +175,7 @@ def swipe(
         device_id: 可选的 ADB 设备 ID。
         delay: 滑动后的延迟（秒）。为 None 时使用默认配置。
     """
+    # 关键步骤：滑动ADB 设备控制相关逻辑
     if delay is None:
         delay = TIMING_CONFIG.device.default_swipe_delay
 
@@ -206,6 +212,7 @@ def back(device_id: str | None = None, delay: float | None = None) -> None:
         device_id: 可选的 ADB 设备 ID。
         delay: 返回后的延迟（秒）。为 None 时使用默认配置。
     """
+    # 关键步骤：返回ADB 设备控制相关逻辑
     if delay is None:
         delay = TIMING_CONFIG.device.default_back_delay
 
@@ -225,6 +232,7 @@ def home(device_id: str | None = None, delay: float | None = None) -> None:
         device_id: 可选的 ADB 设备 ID。
         delay: 按下后的延迟（秒）。为 None 时使用默认配置。
     """
+    # 关键步骤：主页ADB 设备控制相关逻辑
     if delay is None:
         delay = TIMING_CONFIG.device.default_home_delay
 
@@ -250,6 +258,7 @@ def launch_app(
     返回:
         启动成功返回 True，未找到应用返回 False。
     """
+    # 关键步骤：启动指定应用
     if delay is None:
         delay = TIMING_CONFIG.device.default_launch_delay
 
@@ -278,6 +287,7 @@ def launch_app(
 
 def _get_adb_prefix(device_id: str | None) -> list:
     """获取 ADB 命令前缀（可选设备参数）。"""
+    # 关键步骤：获取ADBprefix
     if device_id:
         return ["adb", "-s", device_id]
     return ["adb"]

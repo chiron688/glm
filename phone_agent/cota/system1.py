@@ -18,6 +18,8 @@ class MotionProfile:
 
 class MotionLibrary:
     def __init__(self) -> None:
+        """初始化动作风格库，提供不同速度与时长配置。"""
+        # 关键步骤：加载动作风格配置
         self._profiles = {
             "fast_skip": MotionProfile("fast_skip", (150, 250)),
             "slow_browse": MotionProfile("slow_browse", (400, 600)),
@@ -25,13 +27,15 @@ class MotionLibrary:
         }
 
     def pick(self, style: str | None) -> MotionProfile:
+        """按风格选择运动参数，缺省使用慢速浏览。"""
+        # 关键步骤：选择动作风格（System1 执行）
         if style and style in self._profiles:
             return self._profiles[style]
         return self._profiles["slow_browse"]
 
 
 class FastActionSystem:
-    """Executes atomic intents quickly with light jitter and timing control."""
+    """System1：快速执行原子意图，并控制动作节奏与抖动。"""
 
     def __init__(
         self,
@@ -39,6 +43,8 @@ class FastActionSystem:
         config: Any,
         device_id: str | None = None,
     ) -> None:
+        """初始化 System1 执行器，绑定动作处理器与随机策略。"""
+        # 关键步骤：准备执行器依赖（System1 执行）
         self.action_handler = action_handler
         self.config = config
         self.device_id = device_id
@@ -47,6 +53,8 @@ class FastActionSystem:
         self._last_liveness = 0.0
 
     def execute_intent(self, intent: Any, observation: Any) -> ActionResult | None:
+        """将高层意图转为具体动作并执行。"""
+        # 关键步骤：意图转动作（System1 执行）
         observation = observation or _FallbackObservation()
         action = self._build_action(intent, observation)
         if not action:
@@ -54,6 +62,8 @@ class FastActionSystem:
         return self.action_handler.execute(action, observation.width, observation.height)
 
     def maintain_liveness(self, observation: Any) -> None:
+        """按周期注入轻量等待，维持 UI 活性。"""
+        # 关键步骤：注入活性等待（System1 执行）
         observation = observation or _FallbackObservation()
         if not getattr(self.config, "enable_liveness", False):
             return
@@ -68,6 +78,8 @@ class FastActionSystem:
         self.action_handler.execute(action, observation.width, observation.height)
 
     def _build_action(self, intent: Any, observation: Any) -> dict[str, Any] | None:
+        """将意图解析为动作字典（Tap/Swipe/Type 等）。"""
+        # 关键步骤：构造动作指令（System1 执行）
         observation = observation or _FallbackObservation()
         if intent is None:
             return None
@@ -118,6 +130,8 @@ class FastActionSystem:
         return None
 
     def _apply_jitter(self, element: list[int] | tuple[int, int], observation: Any) -> list[int]:
+        """在坐标上叠加随机抖动以拟人化。"""
+        # 关键步骤：叠加坐标抖动（System1 执行）
         observation = observation or _FallbackObservation()
         if not isinstance(element, (list, tuple)) or len(element) != 2:
             return [0, 0]

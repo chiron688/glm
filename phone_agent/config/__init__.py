@@ -26,6 +26,7 @@ def get_system_prompt(lang: str = "cn") -> str:
     返回:
         系统提示词字符串。
     """
+    # 关键步骤：根据语言返回对应系统提示词
     if lang == "en":
         return SYSTEM_PROMPT_EN
     return SYSTEM_PROMPT_ZH

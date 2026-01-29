@@ -74,6 +74,8 @@ class SkillRunner:
         action_handler: ActionHandler | None = None,
         observer: ObservationProvider | None = None,
     ) -> None:
+        """初始化SkillRunner，准备技能执行所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（技能执行）
         self.registry = registry
         self.config = config or SkillRunnerConfig()
         self.device_id = device_id
@@ -81,6 +83,8 @@ class SkillRunner:
         self.observer = observer or self._build_observer()
 
     def _build_observer(self):
+        """用于技能执行，构建观察器。"""
+        # 关键步骤：构建观察器（技能执行）
         if self.config.playback_dir:
             return PlaybackObservationProvider(self.config.playback_dir)
 
@@ -95,6 +99,8 @@ class SkillRunner:
         return observer
 
     def run(self, skill_id: str, inputs: dict[str, Any] | None = None) -> SkillRunResult:
+        """用于技能执行，执行指定技能流程。"""
+        # 关键步骤：执行指定技能流程（技能执行）
         skill = self.registry.get(skill_id)
         if not skill:
             error = SkillError(
@@ -214,6 +220,8 @@ class SkillRunner:
         return SkillRunResult(True, "Skill completed", None, report)
 
     def _prepare_variables(self, spec: dict[str, Any], inputs: dict[str, Any]) -> dict[str, Any]:
+        """用于技能执行，准备变量。"""
+        # 关键步骤：准备变量（技能执行）
         variables = dict(spec.get("vars", {}))
         vocab = self._load_vocab(spec)
         if vocab:
@@ -247,6 +255,8 @@ class SkillRunner:
         return variables
 
     def _load_vocab(self, spec: dict[str, Any]) -> dict[str, Any]:
+        """用于技能执行，加载词表。"""
+        # 关键步骤：加载词表（技能执行）
         vocab: dict[str, Any] = {}
         inline = spec.get("vocab")
         if isinstance(inline, dict):
@@ -264,6 +274,8 @@ class SkillRunner:
         return vocab
 
     def _load_common_handlers(self, variables: dict[str, Any]) -> list[dict[str, Any]]:
+        """用于技能执行，加载通用处理器。"""
+        # 关键步骤：加载通用处理器（技能执行）
         handlers: list[dict[str, Any]] = []
         if self.config.common_error_handlers_path:
             handlers.extend(load_common_handlers(self.config.common_error_handlers_path))
@@ -280,6 +292,8 @@ class SkillRunner:
         observation: Observation,
         step_report: StepReport,
     ) -> tuple[bool, Observation, SkillError | None]:
+        """用于技能执行，执行步骤。"""
+        # 关键步骤：执行步骤（技能执行）
         retry_policy = self._parse_retry_policy(step.get("retry"), self.config.default_retry)
         max_attempts = max(1, retry_policy.max_attempts)
 
@@ -612,6 +626,8 @@ class SkillRunner:
     def _apply_before_step_handlers(
         self, step: dict[str, Any], spec: dict[str, Any], observation: Observation
     ) -> Observation:
+        """用于技能执行，应用前置步骤处理器。"""
+        # 关键步骤：应用前置步骤处理器（技能执行）
         handlers = self._collect_handlers(step, spec, trigger="before_step")
         if not handlers:
             return observation
@@ -632,6 +648,8 @@ class SkillRunner:
     def _collect_handlers(
         self, step: dict[str, Any] | None, spec: dict[str, Any], trigger: str
     ) -> list[dict[str, Any]]:
+        """用于技能执行，收集处理器。"""
+        # 关键步骤：收集处理器（技能执行）
         handlers: list[dict[str, Any]] = []
         if step:
             handlers.extend(
@@ -645,6 +663,8 @@ class SkillRunner:
     def _handler_condition_matches(
         self, handler: dict[str, Any], observation: Observation
     ) -> bool:
+        """判断错误处理器的条件是否满足。"""
+        # 关键步骤：评估处理器条件（技能执行）
         condition = handler.get("when")
         if condition is None:
             return True
@@ -660,6 +680,8 @@ class SkillRunner:
         spec: dict[str, Any],
         observation: Observation,
     ) -> HandlerOutcome:
+        """根据错误类型选择恢复处理器与重试策略。"""
+        # 关键步骤：选择处理器与恢复动作（技能执行）
         handler, retry_override = self._find_error_handler(error, step, spec, observation)
         if not handler:
             if step and step.get("optional"):
@@ -699,6 +721,8 @@ class SkillRunner:
         spec: dict[str, Any],
         observation: Observation,
     ) -> tuple[dict[str, Any] | None, RetryPolicy | None]:
+        """用于技能执行，查找错误处理器，处理错误或异常。"""
+        # 关键步骤：查找错误处理器（技能执行）
         handlers: list[dict[str, Any]] = []
         if step:
             handlers.extend(
@@ -728,6 +752,8 @@ class SkillRunner:
     def _execute_handler_actions(
         self, handler: dict[str, Any], observation: Observation
     ) -> bool:
+        """用于技能执行，处理执行处理器动作。"""
+        # 关键步骤：处理执行处理器动作（技能执行）
         actions = handler.get("actions", [])
         for action_spec in actions:
             if not isinstance(action_spec, dict):
@@ -760,6 +786,8 @@ class SkillRunner:
         return True
 
     def _build_action(self, step: dict[str, Any], observation: Observation) -> dict[str, Any]:
+        """用于技能执行，构建动作。"""
+        # 关键步骤：构建动作（技能执行）
         action_name = step.get("action")
         if not action_name:
             raise SkillError(
@@ -836,6 +864,8 @@ class SkillRunner:
     def _resolve_target(
         self, target: dict[str, Any] | list[int] | None, observation: Observation
     ) -> tuple[int, int] | None:
+        """用于技能执行，解析目标。"""
+        # 关键步骤：解析目标（技能执行）
         if target is None:
             return None
         if isinstance(target, list) and len(target) == 2:
@@ -881,6 +911,8 @@ class SkillRunner:
         return point
 
     def _relative_to_absolute(self, coords: list[int], observation: Observation) -> tuple[int, int]:
+        """将相对转换为绝对。"""
+        # 关键步骤：相对转绝对
         x = int(coords[0] / 1000 * observation.width)
         y = int(coords[1] / 1000 * observation.height)
         return x, y
@@ -888,6 +920,8 @@ class SkillRunner:
     def _absolute_to_relative(
         self, point: tuple[int, int], observation: Observation
     ) -> list[int]:
+        """将绝对转换为相对。"""
+        # 关键步骤：绝对转相对
         x = int(point[0] / observation.width * 1000)
         y = int(point[1] / observation.height * 1000)
         return [x, y]
@@ -899,6 +933,8 @@ class SkillRunner:
         stage: str,
         strict: bool,
     ) -> tuple[bool | None, Observation]:
+        """用于技能执行，处理检查条件阻断，用于条件判断。"""
+        # 关键步骤：处理检查条件阻断（技能执行）
         if block is None:
             return True, observation
         if "condition" in block:
@@ -933,6 +969,8 @@ class SkillRunner:
     def _parse_retry_policy(
         self, spec: dict[str, Any] | None, fallback: RetryPolicy
     ) -> RetryPolicy:
+        """用于技能执行，解析重试策略。"""
+        # 关键步骤：解析重试策略（技能执行）
         if not spec:
             return fallback
         return RetryPolicy(
@@ -945,6 +983,8 @@ class SkillRunner:
         )
 
     def _should_retry(self, error: SkillError, retry_policy: RetryPolicy, attempt: int) -> bool:
+        """判断是否重试。"""
+        # 关键判断：是否重试
         if attempt >= retry_policy.max_attempts:
             return False
         if retry_policy.on_codes is None:
@@ -952,6 +992,8 @@ class SkillRunner:
         return error.code.value in retry_policy.on_codes
 
     def _backoff(self, attempt: int, retry_policy: RetryPolicy) -> None:
+        """用于技能执行，处理退避。"""
+        # 关键步骤：处理退避（技能执行）
         if retry_policy.backoff_ms <= 0:
             return
         sleep_with_backoff(

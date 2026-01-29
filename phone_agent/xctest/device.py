@@ -20,6 +20,7 @@ def _get_wda_session_url(wda_url: str, session_id: str | None, endpoint: str) ->
     返回:
         端点的完整 URL。
     """
+    # 关键步骤：获取WDA会话url
     base = wda_url.rstrip("/")
     if session_id:
         return f"{base}/session/{session_id}/{endpoint}"
@@ -41,6 +42,7 @@ def get_current_app(
     返回:
         若可识别则返回应用名称，否则返回 "System Home"。
     """
+    # 关键步骤：获取当前前台应用
     try:
         import requests
 
@@ -89,6 +91,7 @@ def tap(
         session_id: 可选的 WDA 会话 ID。
         delay: 点击后的延迟（秒）。
     """
+    # 关键步骤：执行点击操作
     try:
         import requests
 
@@ -138,6 +141,7 @@ def double_tap(
         session_id: 可选的 WDA 会话 ID。
         delay: 双击后的延迟（秒）。
     """
+    # 关键步骤：执行双击操作
     try:
         import requests
 
@@ -193,6 +197,7 @@ def long_press(
         session_id: 可选的 WDA 会话 ID。
         delay: 长按后的延迟（秒）。
     """
+    # 关键步骤：执行长按操作
     try:
         import requests
 
@@ -251,6 +256,7 @@ def swipe(
         session_id: 可选的 WDA 会话 ID。
         delay: 滑动后的延迟（秒）。
     """
+    # 关键步骤：执行滑动操作
     try:
         import requests
 
@@ -297,6 +303,7 @@ def back(
     说明:
         iOS 没有通用的返回按钮，这里通过从屏幕左边缘滑动模拟返回手势。
     """
+    # 关键步骤：发送返回键事件
     try:
         import requests
 
@@ -334,6 +341,7 @@ def home(
         session_id: 可选的 WDA 会话 ID。
         delay: 按下后的延迟（秒）。
     """
+    # 关键步骤：发送主页键事件
     try:
         import requests
 
@@ -367,6 +375,7 @@ def launch_app(
     返回:
         启动成功返回 True，未找到应用返回 False。
     """
+    # 关键步骤：启动指定应用
     if app_name not in APP_PACKAGES:
         return False
 
@@ -404,6 +413,7 @@ def get_screen_size(
     返回:
         (width, height) 元组。若无法获取则默认返回 (375, 812)。
     """
+    # 关键步骤：获取screensize
     try:
         import requests
 
@@ -442,6 +452,7 @@ def press_button(
         session_id: 可选的 WDA 会话 ID。
         delay: 按下后的延迟（秒）。
     """
+    # 关键步骤：处理button
     try:
         import requests
 

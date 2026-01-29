@@ -17,21 +17,29 @@ class OcrResult:
 
 class OcrProvider(Protocol):
     def extract(self, image: Image.Image) -> list[OcrResult]:
+        """用于OCR 识别，提取文本与边界框。"""
+        # 关键步骤：提取文本与边界框（OCR 识别）
         ...
 
 
 class NullOcrProvider:
     def extract(self, image: Image.Image) -> list[OcrResult]:
+        """用于OCR 识别，提取文本与边界框。"""
+        # 关键步骤：提取文本与边界框（OCR 识别）
         _ = image
         return []
 
 
 class TesseractOcrProvider:
     def __init__(self, lang: str = "eng", config: str = "") -> None:
+        """初始化TesseractOcrProvider，准备OCR 识别所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（OCR 识别）
         self.lang = lang
         self.config = config
 
     def extract(self, image: Image.Image) -> list[OcrResult]:
+        """用于OCR 识别，提取文本与边界框。"""
+        # 关键步骤：提取文本与边界框（OCR 识别）
         try:
             import pytesseract
         except ImportError as exc:
@@ -76,6 +84,8 @@ class PaddleOcrProvider:
         force_v5: bool = False,
         **kwargs: Any,
     ) -> None:
+        """初始化PaddleOcrProvider，准备OCR 识别所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（OCR 识别）
         try:
             from paddleocr import PaddleOCR
         except ImportError as exc:
@@ -108,6 +118,8 @@ class PaddleOcrProvider:
         self._ocr = PaddleOCR(**init_kwargs)
 
     def extract(self, image: Image.Image) -> list[OcrResult]:
+        """用于OCR 识别，提取文本与边界框。"""
+        # 关键步骤：提取文本与边界框（OCR 识别）
         try:
             import numpy as np
         except ImportError as exc:
@@ -152,6 +164,8 @@ class GemmaOcrProvider:
         extra_body: dict[str, Any] | None = None,
         prompt: str | None = None,
     ) -> None:
+        """初始化GemmaOcrProvider，准备OCR 识别所需的依赖、状态与默认配置。"""
+        # 关键步骤：初始化（OCR 识别）
         try:
             from openai import OpenAI
         except ImportError as exc:
@@ -171,6 +185,8 @@ class GemmaOcrProvider:
         self.client = OpenAI(base_url=base_url, api_key=api_key)
 
     def extract(self, image: Image.Image) -> list[OcrResult]:
+        """用于OCR 识别，提取文本与边界框。"""
+        # 关键步骤：提取文本与边界框（OCR 识别）
         import base64
         import json
         from io import BytesIO
@@ -231,6 +247,8 @@ def build_ocr_provider(
     provider: str,
     **kwargs: Any,
 ) -> OcrProvider:
+    """根据名称构建 OCR 提供器（Paddle/Gemma）。"""
+    # 关键步骤：选择并实例化 OCR 提供器
     name = (provider or "").strip().lower()
     if name in ("paddle", "paddleocr"):
         return PaddleOcrProvider(**kwargs)
@@ -240,6 +258,8 @@ def build_ocr_provider(
 
 
 def _extract_json(text: str) -> str:
+    """从文本中提取 JSON 片段。"""
+    # 关键步骤：截取 JSON 内容（OCR 识别）
     text = (text or "").strip()
     if text.startswith("{") and text.endswith("}"):
         return text

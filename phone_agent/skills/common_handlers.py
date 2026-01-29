@@ -9,6 +9,8 @@ import yaml
 
 
 def load_common_handlers(path: str | Path) -> list[dict[str, Any]]:
+    """用于通用错误处理，加载通用处理器。"""
+    # 关键步骤：加载通用处理器（通用错误处理）
     file_path = Path(path)
     if not file_path.exists():
         return []

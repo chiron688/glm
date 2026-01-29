@@ -43,6 +43,7 @@ def get_screenshot(
         优先使用 WebDriverAgent，若不可用则回退到 idevicescreenshot。
         若都失败，则返回黑色占位图。
     """
+    # 关键步骤：获取屏幕截图并编码为 base64
     # 先尝试 WebDriverAgent（首选方式）
     screenshot = _get_screenshot_wda(wda_url, session_id, timeout)
     if screenshot:
@@ -71,6 +72,7 @@ def _get_screenshot_wda(
     返回:
         成功时返回 Screenshot 对象，失败时返回 None。
     """
+    # 关键步骤：获取截图WDA
     try:
         import requests
 
@@ -116,6 +118,7 @@ def _get_screenshot_idevice(
     返回:
         成功时返回 Screenshot 对象，失败时返回 None。
     """
+    # 关键步骤：获取截图idevice
     try:
         temp_path = os.path.join(
             tempfile.gettempdir(), f"ios_screenshot_{uuid.uuid4()}.png"
@@ -166,6 +169,7 @@ def _create_fallback_screenshot(is_sensitive: bool) -> Screenshot:
     返回:
         带黑色图片的 Screenshot 对象。
     """
+    # 关键步骤：处理fallback截图
     # 默认的 iPhone 屏幕尺寸（iPhone 14 Pro）
     default_width, default_height = 1179, 2556
 
@@ -196,6 +200,7 @@ def save_screenshot(
     返回:
         成功返回 True，失败返回 False。
     """
+    # 关键步骤：处理截图
     try:
         img_data = base64.b64decode(screenshot.base64_data)
         img = Image.open(BytesIO(img_data))
@@ -222,6 +227,7 @@ def get_screenshot_png(
     返回:
         成功返回 PNG 字节数据，失败返回 None。
     """
+    # 关键步骤：获取截图png
     screenshot = get_screenshot(wda_url, session_id, device_id)
 
     try:

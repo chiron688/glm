@@ -15,6 +15,7 @@ def _get_wda_session_url(wda_url: str, session_id: str | None, endpoint: str) ->
     返回:
         端点的完整 URL。
     """
+    # 关键步骤：获取WDA会话url
     base = wda_url.rstrip("/")
     if session_id:
         return f"{base}/session/{session_id}/{endpoint}"
@@ -42,6 +43,7 @@ def type_text(
         调用前输入框必须已聚焦。
         可先用 tap() 让输入框获得焦点。
     """
+    # 关键步骤：输入文本内容
     try:
         import requests
 
@@ -76,6 +78,7 @@ def clear_text(
         该方法会向当前激活元素发送清空命令。
         调用前输入框必须已聚焦。
     """
+    # 关键步骤：清空当前输入框内容
     try:
         import requests
 
@@ -116,6 +119,7 @@ def _clear_with_backspace(
         session_id: 可选的 WDA 会话 ID。
         max_backspaces: 最多发送的退格次数。
     """
+    # 关键步骤：清空withbackspace
     try:
         import requests
 
@@ -151,6 +155,7 @@ def send_keys(
         >>> send_keys(["H", "e", "l", "l", "o"])
         >>> send_keys(["\n"])  # 发送回车键
     """
+    # 关键步骤：发送keys
     try:
         import requests
 
@@ -177,6 +182,7 @@ def press_enter(
         session_id: 可选的 WDA 会话 ID。
         delay: 按下后的延迟（秒）。
     """
+    # 关键步骤：处理enter
     send_keys(["\n"], wda_url, session_id)
     time.sleep(delay)
 
@@ -192,6 +198,7 @@ def hide_keyboard(
         wda_url: WebDriverAgent 地址。
         session_id: 可选的 WDA 会话 ID。
     """
+    # 关键步骤：处理输入法
     try:
         import requests
 
@@ -219,6 +226,7 @@ def is_keyboard_shown(
     返回:
         键盘显示返回 True，否则返回 False。
     """
+    # 关键步骤：处理输入法shown
     try:
         import requests
 
@@ -253,6 +261,7 @@ def set_pasteboard(
         适合输入大量文本。
         设置剪贴板后可模拟粘贴手势。
     """
+    # 关键步骤：设置pasteboard
     try:
         import requests
 
@@ -280,6 +289,7 @@ def get_pasteboard(
     返回:
         剪贴板内容，失败则返回 None。
     """
+    # 关键步骤：获取pasteboard
     try:
         import requests
 

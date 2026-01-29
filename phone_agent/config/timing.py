@@ -20,6 +20,7 @@ class ActionTimingConfig:
 
     def __post_init__(self):
         """若存在环境变量则加载其值。"""
+        # 关键步骤：从环境变量加载并覆盖默认时间配置
         self.keyboard_switch_delay = float(
             os.getenv("PHONE_AGENT_KEYBOARD_SWITCH_DELAY", self.keyboard_switch_delay)
         )
@@ -50,6 +51,7 @@ class DeviceTimingConfig:
 
     def __post_init__(self):
         """若存在环境变量则加载其值。"""
+        # 关键步骤：从环境变量加载并覆盖默认时间配置
         self.default_tap_delay = float(
             os.getenv("PHONE_AGENT_TAP_DELAY", self.default_tap_delay)
         )
@@ -88,6 +90,7 @@ class ConnectionTimingConfig:
 
     def __post_init__(self):
         """若存在环境变量则加载其值。"""
+        # 关键步骤：从环境变量加载并覆盖默认时间配置
         self.adb_restart_delay = float(
             os.getenv("PHONE_AGENT_ADB_RESTART_DELAY", self.adb_restart_delay)
         )
@@ -106,6 +109,7 @@ class TimingConfig:
 
     def __init__(self):
         """初始化所有时间配置。"""
+        # 关键步骤：初始化时间配置并加载默认值
         self.action = ActionTimingConfig()
         self.device = DeviceTimingConfig()
         self.connection = ConnectionTimingConfig()
@@ -123,6 +127,7 @@ def get_timing_config() -> TimingConfig:
     返回:
         全局 TimingConfig 实例。
     """
+    # 关键步骤：返回全局时间配置实例
     return TIMING_CONFIG
 
 
@@ -147,6 +152,7 @@ def update_timing_config(
         ... )
         >>> update_timing_config(action=custom_action)
     """
+    # 关键步骤：更新全局时间配置（可局部覆盖）
     global TIMING_CONFIG
     if action is not None:
         TIMING_CONFIG.action = action

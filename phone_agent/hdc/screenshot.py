@@ -38,6 +38,7 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
         若截图失败（例如支付页面等敏感界面），
         将返回黑色占位图，并设置 is_sensitive=True。
     """
+    # 关键步骤：获取屏幕截图并编码为 base64
     temp_path = os.path.join(tempfile.gettempdir(), f"screenshot_{uuid.uuid4()}.png")
     hdc_prefix = _get_hdc_prefix(device_id)
 
@@ -103,6 +104,7 @@ def get_screenshot(device_id: str | None = None, timeout: int = 10) -> Screensho
 
 def _get_hdc_prefix(device_id: str | None) -> list:
     """获取 HDC 命令前缀（可选设备参数）。"""
+    # 关键步骤：获取HDCprefix
     if device_id:
         return ["hdc", "-t", device_id]
     return ["hdc"]
@@ -110,6 +112,7 @@ def _get_hdc_prefix(device_id: str | None) -> list:
 
 def _create_fallback_screenshot(is_sensitive: bool) -> Screenshot:
     """截图失败时创建黑色占位图。"""
+    # 关键步骤：处理fallback截图
     default_width, default_height = 1080, 2400
 
     black_img = Image.new("RGB", (default_width, default_height), color="black")

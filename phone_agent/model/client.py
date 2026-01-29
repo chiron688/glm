@@ -47,6 +47,8 @@ class ModelClient:
     """
 
     def __init__(self, config: ModelConfig | None = None):
+        """初始化模型客户端，配置 OpenAI 兼容 API 与连接参数。"""
+        # 关键步骤：初始化模型客户端，配置 OpenAI 兼容 API 与连接参数
         self.config = config or ModelConfig()
         self.client = OpenAI(base_url=self.config.base_url, api_key=self.config.api_key)
 
@@ -63,6 +65,7 @@ class ModelClient:
         异常:
             ValueError: 响应无法解析时抛出。
         """
+        # 关键步骤：发送聊天请求并流式解析思考与动作内容
         # 开始计时
         start_time = time.time()
         time_to_first_token = None
@@ -189,6 +192,7 @@ class ModelClient:
         返回:
             (thinking, action) 元组。
         """
+        # 关键步骤：从模型原始输出中解析思考与动作片段
         # 规则 1：检查 finish(message=
         if "finish(message=" in content:
             parts = content.split("finish(message=", 1)
@@ -220,6 +224,7 @@ class MessageBuilder:
     @staticmethod
     def create_system_message(content: str) -> dict[str, Any]:
         """创建系统消息。"""
+        # 关键步骤：构建系统角色消息
         return {"role": "system", "content": content}
 
     @staticmethod
@@ -236,6 +241,7 @@ class MessageBuilder:
         返回:
             消息字典。
         """
+        # 关键步骤：构建用户消息，并可附带截图
         content = []
 
         if image_base64:
@@ -253,6 +259,7 @@ class MessageBuilder:
     @staticmethod
     def create_assistant_message(content: str) -> dict[str, Any]:
         """创建助手消息。"""
+        # 关键步骤：构建助手角色消息
         return {"role": "assistant", "content": content}
 
     @staticmethod
@@ -266,6 +273,7 @@ class MessageBuilder:
         返回:
             已移除图片的消息。
         """
+        # 关键步骤：移除消息中的图片以节省上下文
         if isinstance(message.get("content"), list):
             message["content"] = [
                 item for item in message["content"] if item.get("type") == "text"
@@ -284,5 +292,6 @@ class MessageBuilder:
         返回:
             包含屏幕信息的 JSON 字符串。
         """
+        # 关键步骤：构建屏幕信息 JSON 字符串
         info = {"current_app": current_app, **extra_info}
         return json.dumps(info, ensure_ascii=False)

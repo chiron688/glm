@@ -25,6 +25,7 @@ def _run_hdc_command(cmd: list, **kwargs) -> subprocess.CompletedProcess:
     返回:
         CompletedProcess 结果。
     """
+    # 关键步骤：处理HDCcommand
     if _HDC_VERBOSE:
         print(f"[HDC] Running command: {' '.join(cmd)}")
 
@@ -40,6 +41,7 @@ def _run_hdc_command(cmd: list, **kwargs) -> subprocess.CompletedProcess:
 
 def set_hdc_verbose(verbose: bool):
     """全局设置 HDC 详细日志模式。"""
+    # 关键步骤：设置HDCverbose
     global _HDC_VERBOSE
     _HDC_VERBOSE = verbose
 
@@ -86,6 +88,7 @@ class HDCConnection:
         参数:
             hdc_path: HDC 可执行文件路径。
         """
+        # 关键步骤：初始化HDCConnection，配置HDC 连接所需的参数与依赖
         self.hdc_path = hdc_path
 
     def connect(self, address: str, timeout: int = 10) -> tuple[bool, str]:
@@ -102,6 +105,7 @@ class HDCConnection:
         说明:
             远程设备需开启 TCP/IP 调试。
         """
+        # 关键步骤：通过 TCP/IP 连接到指定设备地址
         # 校验地址格式
         if ":" not in address:
             address = f"{address}:5555"  # 默认 HDC 端口
@@ -138,6 +142,7 @@ class HDCConnection:
         返回:
             (success, message) 的元组。
         """
+        # 关键步骤：断开远程设备连接
         try:
             if address:
                 cmd = [self.hdc_path, "tdisconn", address]
@@ -169,6 +174,7 @@ class HDCConnection:
         返回:
             DeviceInfo 对象列表。
         """
+        # 关键步骤：列出当前可用的 HDC 设备
         try:
             result = _run_hdc_command(
                 [self.hdc_path, "list", "targets"],
@@ -219,6 +225,7 @@ class HDCConnection:
         返回:
             DeviceInfo 对象，未找到则返回 None。
         """
+        # 关键步骤：获取设备的基本信息与状态
         devices = self.list_devices()
 
         if not devices:
@@ -243,6 +250,7 @@ class HDCConnection:
         返回:
             已连接返回 True，否则返回 False。
         """
+        # 关键步骤：检查设备是否已连接
         devices = self.list_devices()
 
         if not devices:
@@ -272,6 +280,7 @@ class HDCConnection:
             设备必须先通过 USB 连接。
             启用后可拔掉 USB，通过 WiFi 连接。
         """
+        # 关键步骤：开启设备 TCP/IP 调试模式
         try:
             cmd = [self.hdc_path]
             if device_id:
@@ -301,6 +310,7 @@ class HDCConnection:
         返回:
             IP 地址字符串，未找到则返回 None。
         """
+        # 关键步骤：查询设备当前 IP 地址
         try:
             cmd = [self.hdc_path]
             if device_id:
@@ -337,6 +347,7 @@ class HDCConnection:
         返回:
             (success, message) 的元组。
         """
+        # 关键步骤：重启 HDC 服务端
         try:
             # 终止服务
             _run_hdc_command(
@@ -366,6 +377,7 @@ def quick_connect(address: str) -> tuple[bool, str]:
     返回:
         (success, message) 的元组。
     """
+    # 关键步骤：快速连接到设备地址
     conn = HDCConnection()
     return conn.connect(address)
 
@@ -377,5 +389,6 @@ def list_devices() -> list[DeviceInfo]:
     返回:
         DeviceInfo 对象列表。
     """
+    # 关键步骤：列出当前可用的 HDC 设备
     conn = HDCConnection()
     return conn.list_devices()

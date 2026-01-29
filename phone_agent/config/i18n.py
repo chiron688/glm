@@ -61,6 +61,7 @@ def get_messages(lang: str = "cn") -> dict:
     返回:
         界面消息字典。
     """
+    # 关键步骤：按语言返回消息字典
     if lang == "en":
         return MESSAGES_EN
     return MESSAGES_ZH
@@ -77,5 +78,6 @@ def get_message(key: str, lang: str = "cn") -> str:
     返回:
         消息字符串。
     """
+    # 关键步骤：按 key 与语言返回单条消息
     messages = get_messages(lang)
     return messages.get(key, key)

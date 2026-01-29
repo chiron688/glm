@@ -12,6 +12,8 @@ from phone_agent.skills.schema import SkillDefinition, SkillSchemaError, validat
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
+    """读取并解析 YAML 技能文件为字典结构。"""
+    # 关键步骤：解析 YAML 文件（技能加载）
     try:
         with path.open("r", encoding="utf-8") as handle:
             data = yaml.safe_load(handle)
@@ -25,6 +27,8 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 
 def load_skill_file(path: str | Path) -> SkillDefinition:
+    """从 YAML 文件加载并校验技能定义。"""
+    # 关键步骤：解析与校验技能文件（技能加载）
     path_obj = Path(path)
     spec = _load_yaml(path_obj)
     normalized = validate_skill_spec(spec, str(path_obj))
@@ -38,6 +42,8 @@ def load_skill_file(path: str | Path) -> SkillDefinition:
 
 
 def load_skill_from_json(text: str, source: str = "<json>") -> SkillDefinition:
+    """从 JSON 字符串加载并校验技能定义。"""
+    # 关键步骤：解析 JSON 并校验（技能加载）
     try:
         spec = json.loads(text)
     except json.JSONDecodeError as exc:
