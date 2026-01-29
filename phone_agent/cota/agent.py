@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
 from typing import Any, Callable
+import os
 
 from phone_agent.actions import ActionHandler
-from phone_agent.agent import AgentConfig, PhoneAgent
+from phone_agent.agent import AgentConfig
 from phone_agent.model import ModelConfig
-from phone_agent.skills import SkillRegistry, SkillRunner, SkillRunnerConfig, SkillRouter, SkillRouterConfig
+from phone_agent.skills import (
+    build_ocr_provider,
+    SkillRegistry,
+    SkillRunner,
+    SkillRunnerConfig,
+    SkillRouter,
+    SkillRouterConfig,
+)
 
 from phone_agent.cota.config import COTAConfig
 from phone_agent.cota.coordinator import COTACoordinator
@@ -58,6 +65,24 @@ class COTAPhoneAgent:
                 record_dir=self.agent_config.skill_record_dir,
                 playback_dir=self.agent_config.skill_playback_dir,
             )
+            if runner_config.ocr_provider is None:
+                provider = os.getenv("PHONE_AGENT_OCR_PROVIDER", "paddle")
+                if provider.lower() in ("gemma", "google-gemma"):
+                    runner_config.ocr_provider = build_ocr_provider(
+                        provider,
+                        base_url=os.getenv("PHONE_AGENT_OCR_BASE_URL", self.model_config.base_url),
+                        api_key=os.getenv("PHONE_AGENT_OCR_API_KEY", self.model_config.api_key),
+                        model_name=os.getenv(
+                            "PHONE_AGENT_OCR_MODEL",
+                            "google/gemma-3n-E2B-it-litert-lm",
+                        ),
+                    )
+                else:
+                    runner_config.ocr_provider = build_ocr_provider(
+                        provider,
+                        lang=os.getenv("PHONE_AGENT_OCR_LANG", "ml"),
+                        force_v5=True,
+                    )
             self.skill_runner = SkillRunner(
                 self.skill_registry,
                 config=runner_config,
@@ -75,16 +100,6 @@ class COTAPhoneAgent:
             )
             self.skill_router = SkillRouter(self.skill_registry, router_config)
 
-        fallback_agent_config = replace(
-            self.agent_config, enable_skill_routing=False, skill_paths=None
-        )
-        self.llm_agent = PhoneAgent(
-            model_config=self.model_config,
-            agent_config=fallback_agent_config,
-            confirmation_callback=confirmation_callback,
-            takeover_callback=takeover_callback,
-        )
-
         self.system1 = FastActionSystem(
             action_handler=self.action_handler,
             config=self.cota_config.system1,
@@ -100,7 +115,7 @@ class COTAPhoneAgent:
             config=self.cota_config,
             skill_registry=self.skill_registry,
             skill_router=self.skill_router,
-            llm_agent=self.llm_agent,
+            llm_agent=None,
             vlm_analyzer=vlm_analyzer,
         )
 
@@ -115,7 +130,7 @@ class COTAPhoneAgent:
         return self.coordinator.run(task)
 
     def reset(self) -> None:
-        self.llm_agent.reset()
+        return
 
     @property
     def skill_errors(self) -> list[str]:

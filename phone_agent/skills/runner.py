@@ -44,7 +44,7 @@ class RetryPolicy:
 class SkillRunnerConfig:
     strict_preconditions: bool = True
     strict_postconditions: bool = True
-    include_ui_tree: bool = True
+    include_ui_tree: bool = False
     include_screen_hash: bool = True
     ocr_provider: OcrProvider | None = None
     default_retry: RetryPolicy = field(default_factory=RetryPolicy)
@@ -72,12 +72,13 @@ class SkillRunner:
         config: SkillRunnerConfig | None = None,
         device_id: str | None = None,
         action_handler: ActionHandler | None = None,
+        observer: ObservationProvider | None = None,
     ) -> None:
         self.registry = registry
         self.config = config or SkillRunnerConfig()
         self.device_id = device_id
         self.action_handler = action_handler or ActionHandler(device_id=device_id)
-        self.observer = self._build_observer()
+        self.observer = observer or self._build_observer()
 
     def _build_observer(self):
         if self.config.playback_dir:

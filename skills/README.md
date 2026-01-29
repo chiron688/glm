@@ -63,7 +63,15 @@ python scripts/run_skill.py --skill-id publish_video_suite --inputs '{"caption":
 
 ## Notes
 
-- `selector` targets require a UI hierarchy dump. On ADB this uses `uiautomator dump`.
+- UI tree capture is disabled to reduce detection risk. `selector` resolution is OCR-based only.
+- OCR requires an OCR provider; without OCR, only coordinate targets will work.
+- Android COTA 默认强制使用 PaddleOCR v5 多语言模型（`lang=ml`，`force_v5=True`）。
+- 可通过环境变量切换 OCR 供应商：
+  - `PHONE_AGENT_OCR_PROVIDER=paddle|gemma`
+  - PaddleOCR：`PHONE_AGENT_OCR_LANG=ml`
+  - Gemma OCR：`PHONE_AGENT_OCR_BASE_URL`、`PHONE_AGENT_OCR_API_KEY`、`PHONE_AGENT_OCR_MODEL`
+    （默认模型：`google/gemma-3n-E2B-it-litert-lm`）
+- Gemma OCR 需要模型端返回 JSON（含文本与像素级边界框）。
 - `preconditions`, `guard`, and `assert` accept condition blocks with optional timeouts.
 - `error_handlers` can auto-dismiss popups before each step or handle errors during a step.
 - Use `skills/common/error_handlers.yaml` for common popups (permissions, update prompts, network, login).

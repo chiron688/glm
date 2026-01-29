@@ -21,6 +21,8 @@ from phone_agent.skills import (
 )
 from phone_agent.cota import (
     COTAPhoneAgent,
+    COTAIOSAgent,
+    COTAIOSAgentConfig,
     COTAConfig,
     COTACoordinator,
     FastActionSystem,
@@ -32,6 +34,8 @@ __all__ = [
     "PhoneAgent",
     "IOSPhoneAgent",
     "COTAPhoneAgent",
+    "COTAIOSAgent",
+    "COTAIOSAgentConfig",
     "COTAConfig",
     "COTACoordinator",
     "FastActionSystem",

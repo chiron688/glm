@@ -51,6 +51,7 @@ APP_PACKAGES_IOS: dict[str, str] = {
     "抖音极速版": "com.ss.iphone.ugc.aweme.lite",
     "抖音火山版": "com.ss.iphone.ugc.Live",
     "Tiktok": "com.zhiliaoapp.musically",
+    "TikTok": "com.zhiliaoapp.musically",
     "飞书": "com.bytedance.ee.lark",
     "今日头条": "com.ss.iphone.article.News",
     "西瓜视频": "com.ss.iphone.article.Video",

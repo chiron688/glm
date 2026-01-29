@@ -33,10 +33,9 @@ steps:
         actions:
           - action: Tap
             target:
-              type: selector
-              selector:
-                text: "+"
-                match: exact
+              type: coords
+              coords: [500, 950]
+              coords_type: relative
         resolution: retry
   - id: "wait_upload"
     action: Wait

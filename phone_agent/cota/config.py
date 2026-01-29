@@ -25,7 +25,7 @@ class System2Config:
     max_latency_ms: int = 3000
     enable_skill_routing: bool = True
     enable_exception_skills: bool = True
-    enable_vlm_recovery: bool = False
+    enable_vlm_recovery: bool = True
     vlm_confidence_threshold: float = 0.65
 
 

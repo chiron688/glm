@@ -11,7 +11,7 @@ from typing import Any
 
 from phone_agent.device_factory import get_device_factory
 from phone_agent.skills.ocr import OcrProvider
-from phone_agent.skills.selector import UINode, extract_texts, parse_ui_dump
+from phone_agent.skills.selector import UINode, extract_texts
 from phone_agent.skills.utils import compute_ahash, decode_image_from_base64
 
 
@@ -47,7 +47,7 @@ class ObservationProvider:
     def __init__(
         self,
         device_id: str | None = None,
-        include_ui_tree: bool = True,
+        include_ui_tree: bool = False,
         include_screen_hash: bool = True,
         ocr_provider: OcrProvider | None = None,
     ) -> None:
@@ -64,14 +64,9 @@ class ObservationProvider:
         ui_nodes: list[Any] = []
         ui_texts: list[str] = []
 
-        if self.include_ui_tree:
-            try:
-                ui_tree = self.device_factory.get_ui_tree(self.device_id)
-            except Exception:
-                ui_tree = None
-        if ui_tree:
-            ui_nodes = parse_ui_dump(ui_tree)
-            ui_texts = extract_texts(ui_nodes)
+        # UI tree capture is disabled to reduce detection risk.
+        # OCR provides the only structured text nodes.
+        ui_tree = None
 
         if self.ocr_provider is not None:
             try:
@@ -192,16 +187,8 @@ class PlaybackObservationProvider:
         )
 
         ui_tree = None
-        if ui_tree_file:
-            ui_path = self.playback_dir / ui_tree_file
-            if ui_path.exists():
-                ui_tree = ui_path.read_text(encoding="utf-8")
-
         ui_nodes: list[Any] = []
         ui_texts: list[str] = []
-        if ui_tree:
-            ui_nodes = parse_ui_dump(ui_tree)
-            ui_texts = extract_texts(ui_nodes)
 
         return Observation(
             screenshot=screenshot,

@@ -16,14 +16,16 @@ User Task
   Orchestrates System2 planning and System1 execution. Handles skill failures and recovery.
 
 - `phone_agent/cota/system2.py`
-  Slow planning system. Routes tasks to flow skills (Level 2) or falls back to the LLM agent.
+  Slow planning system. Routes tasks to flow skills (Level 2).
   Also maps skill errors to recovery skills (Level 3) and can invoke a VLM analyzer for semantic recovery.
 
 - `phone_agent/cota/system1.py`
   Fast reaction system. Executes atomic intents with light jitter and timing control.
+- `phone_agent/cota/agent_ios.py`
+  iOS wrapper using WDA + OCR-based observation (no UI tree).
 
 - `phone_agent/cota/agent.py`
-  `COTAPhoneAgent` wrapper that wires the coordinator, skills, and fallback LLM agent.
+  `COTAPhoneAgent` wrapper that wires the coordinator and skills execution.
 
 ## Skills Layering
 
@@ -35,11 +37,13 @@ Skills can declare optional metadata to indicate their layer and ownership:
 
 See `skills/README.md` and `skills/schema/skill.schema.yaml` for details.
 
+Note: UI tree capture is disabled; Skills rely on OCR text nodes or coordinate targets.
+
 ## Execution Flow (Simplified)
 
-1. System2 builds a plan using skill routing or LLM fallback.
+1. System2 builds a plan using skill routing.
 2. System1 executes intents or Skills Runner executes flow skills.
-3. On failure, System2 maps errors to recovery skills or falls back to LLM.
+3. On failure, System2 maps errors to recovery skills.
 
 ## Extension Points
 
@@ -47,4 +51,5 @@ See `skills/README.md` and `skills/schema/skill.schema.yaml` for details.
 - Add Level 2 flow skills for app workflows.
 - Add Level 3 recovery skills for popups, UI changes, network errors.
 - Enable VLM-based exception analyzer by setting `COTAConfig.system2.enable_vlm_recovery = True`
-  and optionally providing `COTAConfig.vlm_analyzer` overrides.
+  and optionally providing `COTAConfig.vlm_analyzer` overrides. When enabled, a model API endpoint
+  (local vLLM is fine) must be reachable.

@@ -27,11 +27,13 @@ class COTACoordinator:
         plan = self.system2.plan(task, observation)
 
         if plan.blocked:
-            return f"Blocked by risk gate: {plan.blocked_reason}"
+            if plan.blocked_reason == "no_skill_match":
+                return "No matching skill for task"
+            return f"Blocked: {plan.blocked_reason}"
 
         for step in plan.steps:
             if step.kind == PlanStepKind.LLM:
-                return self.system2.execute_llm(task)
+                return "LLM engine is disabled"
 
             if step.kind == PlanStepKind.INTENT:
                 result = self.system1.execute_intent(step.intent, observation)
@@ -69,7 +71,7 @@ class COTACoordinator:
                     return recovery_result.message or "Recovery failed"
 
                 if recovery.action == "llm":
-                    return self.system2.execute_llm(task)
+                    return "LLM engine is disabled"
 
                 return result.message or "Task failed"
 

@@ -68,14 +68,10 @@ class SlowPlannerSystem:
 
         return Plan(
             task=task,
-            steps=[
-                PlanStep(
-                    step_id="llm_fallback",
-                    kind=PlanStepKind.LLM,
-                    description="llm_fallback",
-                )
-            ],
-            reason="llm_fallback",
+            steps=[],
+            reason="no_skill_match",
+            blocked=True,
+            blocked_reason="no_skill_match",
         )
 
     def recover(self, error: SkillError, observation: Any | None) -> RecoveryDecision:
@@ -99,7 +95,7 @@ class SlowPlannerSystem:
             )
             return RecoveryDecision(action="skill", step=step, reason="mapped_exception")
 
-        return RecoveryDecision(action="llm", reason="fallback_to_llm")
+        return RecoveryDecision(action="none", reason="no_recovery_skill")
 
     def execute_llm(self, task: str) -> str:
         if self.llm_agent is None:

@@ -6,7 +6,7 @@ Demonstrates how to use Phone Agent for phone automation tasks via Python API.
 演示如何通过 Python API 使用 Phone Agent 进行手机自动化任务。
 """
 
-from phone_agent import COTAPhoneAgent, COTAConfig, PhoneAgent
+from phone_agent import COTAPhoneAgent, COTAConfig
 from phone_agent.agent import AgentConfig
 from phone_agent.config import get_messages
 from phone_agent.model import ModelConfig
@@ -31,9 +31,10 @@ def example_basic_task(lang: str = "cn"):
     )
 
     # Create Agent
-    agent = PhoneAgent(
+    agent = COTAPhoneAgent(
         model_config=model_config,
         agent_config=agent_config,
+        cota_config=COTAConfig(),
     )
 
     # Execute task
@@ -59,8 +60,9 @@ def example_with_callbacks(lang: str = "cn"):
 
     # Create Agent with custom callbacks
     agent_config = AgentConfig(lang=lang)
-    agent = PhoneAgent(
+    agent = COTAPhoneAgent(
         agent_config=agent_config,
+        cota_config=COTAConfig(),
         confirmation_callback=my_confirmation,
         takeover_callback=my_takeover,
     )
@@ -101,23 +103,14 @@ def example_cota_task(lang: str = "cn"):
 
 
 def example_step_by_step(lang: str = "cn"):
-    """Step-by-step execution example (for debugging) / 单步执行示例（用于调试）"""
+    """Step-by-step execution example (COTA uses skill runner internally)."""
     msgs = get_messages(lang)
 
     agent_config = AgentConfig(lang=lang)
-    agent = PhoneAgent(agent_config=agent_config)
+    agent = COTAPhoneAgent(agent_config=agent_config, cota_config=COTAConfig())
 
-    # Initialize task
-    result = agent.step("打开美团搜索附近的火锅店")
-    print(f"{msgs['step']} 1: {result.action}")
-
-    # Continue if not finished
-    while not result.finished and agent.step_count < 10:
-        result = agent.step()
-        print(f"{msgs['step']} {agent.step_count}: {result.action}")
-        print(f"  {msgs['thinking']}: {result.thinking[:100]}...")
-
-    print(f"\n{msgs['final_result']}: {result.message}")
+    result = agent.run("打开美团搜索附近的火锅店")
+    print(f"{msgs['final_result']}: {result}")
 
 
 def example_multiple_tasks(lang: str = "cn"):
@@ -125,7 +118,7 @@ def example_multiple_tasks(lang: str = "cn"):
     msgs = get_messages(lang)
 
     agent_config = AgentConfig(lang=lang)
-    agent = PhoneAgent(agent_config=agent_config)
+    agent = COTAPhoneAgent(agent_config=agent_config, cota_config=COTAConfig())
 
     tasks = [
         "打开高德地图查看实时路况",
@@ -169,7 +162,7 @@ def example_remote_device(lang: str = "cn"):
         lang=lang,
     )
 
-    agent = PhoneAgent(agent_config=agent_config)
+    agent = COTAPhoneAgent(agent_config=agent_config, cota_config=COTAConfig())
 
     # Execute task
     result = agent.run("打开微信查看消息")

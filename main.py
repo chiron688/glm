@@ -22,9 +22,7 @@ from urllib.parse import urlparse
 
 from openai import OpenAI
 
-from phone_agent import PhoneAgent
 from phone_agent.agent import AgentConfig
-from phone_agent.agent_ios import IOSAgentConfig, IOSPhoneAgent
 from phone_agent.config.apps import list_supported_apps
 from phone_agent.config.apps_harmonyos import list_supported_apps as list_harmonyos_apps
 from phone_agent.config.apps_ios import list_supported_apps as list_ios_apps
@@ -380,26 +378,15 @@ Examples:
     # Enable TCP/IP on USB device and get connection info
     python main.py --enable-tcpip
 
-    # Use COTA engine (Android/HarmonyOS)
-    python main.py --engine cota "上传视频到 TikTok"
-
     # List supported apps
     python main.py --list-apps
 
-    # iOS specific examples
-    # Run with iOS device
-    python main.py --device-type ios "Open Safari and search for iPhone tips"
+    # iOS COTA example
+    python main.py --device-type ios "打开Safari搜索iPhone技巧"
 
-    # Use WiFi connection for iOS
-    python main.py --device-type ios --wda-url http://192.168.1.100:8100
-
-    # List connected iOS devices
+    # iOS device utilities
     python main.py --device-type ios --list-devices
-
-    # Check WebDriverAgent status
     python main.py --device-type ios --wda-status
-
-    # Pair with iOS device
     python main.py --device-type ios --pair
         """,
     )
@@ -517,13 +504,6 @@ Examples:
         help="Device type: adb for Android, hdc for HarmonyOS, ios for iPhone (default: adb)",
     )
 
-    parser.add_argument(
-        "--engine",
-        type=str,
-        choices=["llm", "cota"],
-        default=os.getenv("PHONE_AGENT_ENGINE", "llm"),
-        help="Execution engine: llm (default) or cota",
-    )
 
     parser.add_argument(
         "task",
@@ -751,10 +731,6 @@ def main():
     ):
         sys.exit(1)
 
-    # Check model API connectivity and model availability
-    if not check_model_api(args.base_url, args.model, args.apikey):
-        sys.exit(1)
-
     # Create configurations and agent based on device type
     model_config = ModelConfig(
         base_url=args.base_url,
@@ -763,21 +739,25 @@ def main():
         lang=args.lang,
     )
 
+    from phone_agent.cota import COTAConfig, COTAPhoneAgent, COTAIOSAgent, COTAIOSAgentConfig
+
+    cota_config = COTAConfig()
+    if cota_config.system2.enable_vlm_recovery:
+        if not check_model_api(args.base_url, args.model, args.apikey):
+            sys.exit(1)
+
     if device_type == DeviceType.IOS:
-        # Create iOS agent
-        agent_config = IOSAgentConfig(
+        agent_config = COTAIOSAgentConfig(
             max_steps=args.max_steps,
             wda_url=args.wda_url,
             device_id=args.device_id,
             verbose=not args.quiet,
             lang=args.lang,
         )
-
-        if args.engine == "cota":
-            print("COTA engine is not available for iOS yet. Falling back to LLM engine.")
-        agent = IOSPhoneAgent(
+        agent = COTAIOSAgent(
             model_config=model_config,
             agent_config=agent_config,
+            cota_config=cota_config,
         )
     else:
         # Create Android/HarmonyOS agent
@@ -787,19 +767,11 @@ def main():
             verbose=not args.quiet,
             lang=args.lang,
         )
-        if args.engine == "cota":
-            from phone_agent.cota import COTAPhoneAgent, COTAConfig
-
-            agent = COTAPhoneAgent(
-                model_config=model_config,
-                agent_config=agent_config,
-                cota_config=COTAConfig(),
-            )
-        else:
-            agent = PhoneAgent(
-                model_config=model_config,
-                agent_config=agent_config,
-            )
+        agent = COTAPhoneAgent(
+            model_config=model_config,
+            agent_config=agent_config,
+            cota_config=cota_config,
+        )
 
     # Print header
     print("=" * 50)
@@ -813,7 +785,6 @@ def main():
     print(f"Max Steps: {agent_config.max_steps}")
     print(f"Language: {agent_config.lang}")
     print(f"Device Type: {args.device_type.upper()}")
-    print(f"Engine: {args.engine}")
 
     # Show iOS-specific config
     if device_type == DeviceType.IOS:
